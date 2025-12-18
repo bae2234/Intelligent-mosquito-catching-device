@@ -419,23 +419,27 @@ def get_user_info():
         'device_id': session['device_id']
     })
 
-# 获取设备列表（管理员）
+# 获取设备列表（管理员可查看所有设备，普通用户只能查看自己的设备）
 @app.route('/api/devices')
 @login_required
 def get_devices():
-    if session['role'] != 'admin':
-        return jsonify({'code': 403, 'msg': '无权限'})
-    
     conn = sqlite3.connect(app.config['DB_PATH'])
     cursor = conn.cursor()
     
-    # 获取所有设备信息
-    cursor.execute("SELECT * FROM devices")
+    # 根据用户角色获取设备信息
+    if session['role'] == 'admin':
+        # 管理员获取所有设备信息
+        cursor.execute("SELECT * FROM devices")
+    else:
+        # 普通用户只能获取自己的设备信息
+        cursor.execute("SELECT * FROM devices WHERE device_id = ?", (session['device_id'],))
+    
     devices = cursor.fetchall()
     
     device_list = []
     for device in devices:
-        device_id, name, status, created_at, location = device
+        device_id, name, status, created_at = device
+        location = "未知位置"  # 设备表中没有location字段，设置默认值
         
         # 获取设备的最新图片信息
         cursor.execute("SELECT id, image_path, original_filename, receive_time FROM images WHERE device_id = ? ORDER BY receive_time DESC LIMIT 1",
@@ -556,9 +560,6 @@ def push_sensor_data():
 @app.route('/api/delete_image/<int:image_id>', methods=['DELETE'])
 @login_required
 def delete_image(image_id):
-    if session['role'] != 'admin':
-        return jsonify({'code': 403, 'msg': '无权限'})
-    
     try:
         conn = sqlite3.connect(app.config['DB_PATH'])
         cursor = conn.cursor()
@@ -573,6 +574,11 @@ def delete_image(image_id):
         
         image_path = image[0]
         device_id = image[1]
+        
+        # 检查权限：普通用户只能删除自己设备的图片
+        if session['role'] != 'admin' and session['device_id'] != device_id:
+            conn.close()
+            return jsonify({'code': 403, 'msg': '无权限删除该图片'})
         
         # 删除图片文件
         if os.path.exists(image_path):
@@ -598,9 +604,6 @@ def delete_image(image_id):
 @app.route('/api/view_image/<int:image_id>', methods=['GET'])
 @login_required
 def view_image(image_id):
-    if session['role'] != 'admin':
-        return jsonify({'code': 403, 'msg': '无权限'})
-    
     try:
         conn = sqlite3.connect(app.config['DB_PATH'])
         cursor = conn.cursor()
@@ -613,9 +616,20 @@ def view_image(image_id):
             conn.close()
             return jsonify({'code': 404, 'msg': '图片不存在'})
         
+        image_path, original_filename, receive_time, device_id = image
+        
+        # 检查权限：普通用户只能查看自己设备的图片
+        if session['role'] != 'admin' and session['device_id'] != device_id:
+            conn.close()
+            return jsonify({'code': 403, 'msg': '无权限查看该图片'})
+        
         conn.close()
         
-        image_path, original_filename, receive_time, device_id = image
+        # 获取文件大小
+        try:
+            file_size = os.path.getsize(image_path) if os.path.exists(image_path) else 0
+        except Exception as e:
+            file_size = 0
         
         # 返回图片信息和URL
         return jsonify({
@@ -624,9 +638,11 @@ def view_image(image_id):
             'data': {
                 'image_path': image_path,
                 'original_filename': original_filename,
+                'filename': original_filename,  # 添加filename字段，与original_filename一致
                 'receive_time': receive_time,
                 'device_id': device_id,
-                'image_url': f"/data/images/{os.path.basename(image_path)}"
+                'image_url': f"/data/images/{os.path.basename(image_path)}",
+                'size': file_size  # 添加文件大小字段
             }
         })
     except Exception as e:

@@ -1,0 +1,71 @@
+{
+  "test_time": "2025-12-18T16:20:29.310471",
+  "total_tests": 9,
+  "passed_tests": 9,
+  "failed_tests": 0,
+  "test_cases": [
+    {
+      "test_name": "MQTT连接与数据发送测试 - test_device_001",
+      "device_id": "test_device_001",
+      "result": true,
+      "error": null,
+      "duration": 2.0042245388031006
+    },
+    {
+      "test_name": "图片上传测试 - test_device_001",
+      "device_id": "test_device_001",
+      "result": true,
+      "error": null,
+      "duration": 0.04010486602783203
+    },
+    {
+      "test_name": "不同设备状态测试 - test_device_001",
+      "device_id": "test_device_001",
+      "result": true,
+      "error": null,
+      "duration": 2.1066439151763916
+    },
+    {
+      "test_name": "MQTT连接与数据发送测试 - test_device_002",
+      "device_id": "test_device_002",
+      "result": true,
+      "error": null,
+      "duration": 2.0029611587524414
+    },
+    {
+      "test_name": "图片上传测试 - test_device_002",
+      "device_id": "test_device_002",
+      "result": true,
+      "error": null,
+      "duration": 0.013522863388061523
+    },
+    {
+      "test_name": "不同设备状态测试 - test_device_002",
+      "device_id": "test_device_002",
+      "result": true,
+      "error": null,
+      "duration": 2.1061251163482666
+    },
+    {
+      "test_name": "MQTT连接与数据发送测试 - test_device_003",
+      "device_id": "test_device_003",
+      "result": true,
+      "error": null,
+      "duration": 2.0022339820861816
+    },
+    {
+      "test_name": "图片上传测试 - test_device_003",
+      "device_id": "test_device_003",
+      "result": true,
+      "error": null,
+      "duration": 0.0160982608795166
+    },
+    {
+      "test_name": "不同设备状态测试 - test_device_003",
+      "device_id": "test_device_003",
+      "result": true,
+      "error": null,
+      "duration": 2.103722095489502
+    }
+  ]
+}
