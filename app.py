@@ -55,8 +55,7 @@ conn.commit()
 conn.close()
 
 # 初始化SocketIO
-# socketio = SocketIO(app)
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app)
 
 # WebSocket客户端连接事件
 @socketio.on('connect')
@@ -437,30 +436,39 @@ def get_devices():
     devices = cursor.fetchall()
     
     device_list = []
+    # 获取所有图片信息
+    cursor.execute("SELECT id, device_id, image_path, original_filename, receive_time FROM images ORDER BY receive_time DESC")
+    all_images = cursor.fetchall()
+    
+    # 按设备ID分组图片
+    images_by_device = {}
+    for image in all_images:
+        image_id, device_id, image_path, original_filename, receive_time = image
+        if device_id not in images_by_device:
+            images_by_device[device_id] = []
+        images_by_device[device_id].append({
+            'id': image_id,
+            'image_path': image_path,
+            'original_filename': original_filename,
+            'receive_time': receive_time
+        })
+    
     for device in devices:
         device_id, name, status, created_at = device
         location = "未知位置"  # 设备表中没有location字段，设置默认值
         
-        # 获取设备的最新图片信息
-        cursor.execute("SELECT id, image_path, original_filename, receive_time FROM images WHERE device_id = ? ORDER BY receive_time DESC LIMIT 1",
-                      (device_id,))
-        latest_image = cursor.fetchone()
+        # 获取该设备的所有图片
+        device_images = images_by_device.get(device_id, [])
         
-        image_info = {
-            'id': latest_image[0] if latest_image else None,
-            'image_path': latest_image[1] if latest_image else None,
-            'original_filename': latest_image[2] if latest_image else None,
-            'receive_time': latest_image[3] if latest_image else None
-        }
-        
-        device_list.append({
-            'device_id': device_id,
-            'name': name,
-            'status': status,
-            'location': location,
-            'created_at': created_at,
-            'latest_image': image_info
-        })
+        for image in device_images:
+            device_list.append({
+                'device_id': device_id,
+                'name': name,
+                'status': status,
+                'location': location,
+                'created_at': created_at,
+                'latest_image': image
+            })
     
     conn.close()
     
@@ -650,9 +658,123 @@ def view_image(image_id):
 
 # 静态文件服务 - 图片访问
 @app.route('/data/images/<filename>')
+@login_required
 def serve_image(filename):
-    """提供图片文件的静态访问"""
+    """提供图片文件的静态访问，带访问控制"""
+    # 检查权限：获取图片所属设备ID
+    conn = sqlite3.connect(app.config['DB_PATH'])
+    cursor = conn.cursor()
+    
+    # 根据文件名查找对应的设备ID
+    cursor.execute("SELECT device_id FROM images WHERE image_path LIKE ?", (f"%{filename}",))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if not result:
+        # 图片不存在或无权访问
+        abort(404)
+    
+    device_id = result[0]
+    
+    # 权限检查：管理员可以访问所有图片，普通用户只能访问自己设备的图片
+    if session['role'] != 'admin' and session['device_id'] != device_id:
+        abort(403)
+    
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/api/images', methods=['GET'])
+@login_required
+def get_images():
+    """获取图片列表，支持分页和权限控制"""
+    try:
+        # 获取分页参数
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        if page < 1:
+            page = 1
+        if per_page < 1:
+            per_page = 1
+        elif per_page > 100:
+            per_page = 100
+        
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        # 根据用户角色构建查询
+        if session['role'] == 'admin':
+            # 管理员可以查看所有图片
+            # 获取总数
+            cursor.execute("SELECT COUNT(*) FROM images")
+            total = cursor.fetchone()[0]
+            
+            # 获取分页数据
+            offset = (page - 1) * per_page
+            cursor.execute("""
+                SELECT i.id, i.image_path, i.original_filename, i.receive_time, 
+                       i.device_id, d.name as device_name
+                FROM images i
+                LEFT JOIN devices d ON i.device_id = d.device_id
+                ORDER BY i.receive_time DESC
+                LIMIT ? OFFSET ?
+            """, (per_page, offset))
+        else:
+            # 普通用户只能查看自己设备的图片
+            device_id = session['device_id']
+            
+            # 获取总数
+            cursor.execute("SELECT COUNT(*) FROM images WHERE device_id = ?", (device_id,))
+            total = cursor.fetchone()[0]
+            
+            # 获取分页数据
+            offset = (page - 1) * per_page
+            cursor.execute("""
+                SELECT i.id, i.image_path, i.original_filename, i.receive_time, 
+                       i.device_id, d.name as device_name
+                FROM images i
+                LEFT JOIN devices d ON i.device_id = d.device_id
+                WHERE i.device_id = ?
+                ORDER BY i.receive_time DESC
+                LIMIT ? OFFSET ?
+            """, (device_id, per_page, offset))
+        
+        images = cursor.fetchall()
+        conn.close()
+        
+        # 格式化响应数据
+        image_list = []
+        for img in images:
+            image_id, image_path, original_filename, receive_time, device_id, device_name = img
+            filename = os.path.basename(image_path) if image_path else ''
+            
+            image_list.append({
+                'id': image_id,
+                'filename': filename,
+                'original_filename': original_filename,
+                'receive_time': receive_time,
+                'device_id': device_id,
+                'device_name': device_name
+            })
+        
+        # 计算分页信息
+        total_pages = (total + per_page - 1) // per_page
+        
+        return jsonify({
+            'code': 200,
+            'msg': 'success',
+            'data': {
+                'images': image_list,
+                'pagination': {
+                    'total': total,
+                    'per_page': per_page,
+                    'current_page': page,
+                    'total_pages': total_pages
+                }
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ 获取图片列表失败: {e}")
+        return jsonify({'code': 500, 'msg': '获取图片列表失败', 'error': str(e)})
 
 @app.route('/receive_logs', methods=['POST'])
 def receive_logs():
@@ -713,6 +835,119 @@ def receive_logs():
             'code': 500,
             'msg': f'Failed to receive logs: {str(e)}'
         }), 500
+
+# 获取设备日志
+@app.route('/api/logs')
+@login_required
+def get_device_logs():
+    """获取设备日志，支持分页和筛选"""
+    try:
+        # 获取查询参数
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        device_id = request.args.get('device_id')
+        date = request.args.get('date')
+        
+        if page < 1:
+            page = 1
+        if per_page < 1 or per_page > 100:
+            per_page = 20
+        
+        # 根据用户角色过滤设备ID
+        allowed_device_ids = []
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        if session['role'] == 'admin':
+            # 管理员可以查看所有设备
+            if device_id:
+                # 如果指定了设备ID，检查是否存在
+                cursor.execute("SELECT device_id FROM devices WHERE device_id = ?", (device_id,))
+                if cursor.fetchone():
+                    allowed_device_ids = [device_id]
+                else:
+                    return jsonify({
+                        'code': 404,
+                        'msg': 'Device not found'
+                    })
+            else:
+                # 获取所有设备ID
+                cursor.execute("SELECT device_id FROM devices")
+                allowed_device_ids = [row[0] for row in cursor.fetchall()]
+        else:
+            # 普通用户只能查看自己的设备
+            allowed_device_ids = [session['device_id']]
+        
+        conn.close()
+        
+        # 读取日志文件
+        all_logs = []
+        
+        for dev_id in allowed_device_ids:
+            device_log_dir = os.path.join(app.config['LOGS_FOLDER'], dev_id)
+            
+            if not os.path.exists(device_log_dir):
+                continue
+            
+            # 获取日志文件列表
+            log_files = []
+            for filename in os.listdir(device_log_dir):
+                if filename.endswith('.log'):
+                    if not date or filename == f"{date}.log":
+                        log_files.append(os.path.join(device_log_dir, filename))
+            
+            # 按文件名排序（最新的日期在前面）
+            log_files.sort(reverse=True)
+            
+            # 读取每个日志文件
+            for log_file in log_files:
+                try:
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line:
+                                try:
+                                    log_entry = json.loads(line)
+                                    log_entry['device_id'] = dev_id
+                                    log_entry['date'] = os.path.basename(log_file).replace('.log', '')
+                                    all_logs.append(log_entry)
+                                except json.JSONDecodeError:
+                                    # 跳过无效的JSON行
+                                    continue
+                except Exception as e:
+                    app.logger.error(f"Error reading log file {log_file}: {str(e)}")
+        
+        # 按时间戳排序（最新的日志在前面）
+        all_logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # 分页
+        total = len(all_logs)
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated_logs = all_logs[start:end]
+        
+        # 计算总页数
+        total_pages = (total + per_page - 1) // per_page
+        
+        return jsonify({
+            'code': 200,
+            'msg': 'success',
+            'data': {
+                'logs': paginated_logs,
+                'pagination': {
+                    'current_page': page,
+                    'per_page': per_page,
+                    'total': total,
+                    'total_pages': total_pages
+                }
+            }
+        })
+    except Exception as e:
+        app.logger.error(f"Error getting device logs: {str(e)}")
+        return jsonify({
+            'code': 500,
+            'msg': f'Error getting device logs: {str(e)}'
+        })
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=False)

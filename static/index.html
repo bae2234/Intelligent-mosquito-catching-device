@@ -190,11 +190,12 @@
         
         .image-item {
             margin-bottom: 20px;
-            padding: 20px;
+            padding: 30px;
             background-color: var(--bg-secondary);
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             transition: var(--transition);
+            text-align: center;
         }
         
         .image-item:hover {
@@ -203,13 +204,52 @@
             border-color: var(--primary-color);
         }
         
+        /* 分页控件样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .pagination button {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #page-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
         .image-item img {
             max-width: 100%;
-            max-height: 250px;
+            max-height: 500px;
             border-radius: var(--radius-sm);
-            margin-top: 15px;
-            object-fit: cover;
-            box-shadow: var(--shadow-sm);
+            margin-top: 20px;
+            object-fit: contain;
+            box-shadow: var(--shadow-md);
             transition: var(--transition);
         }
         
@@ -615,7 +655,29 @@
         <!-- 管理员设备列表 -->
         <div class="card" id="devices-card" style="display: none; margin-bottom: 30px;">
             <h2>所有设备</h2>
-            <div id="devices-list" style="overflow-x: auto;">
+            
+            <!-- 设备添加功能 -->
+            <div style="margin-bottom: 20px; padding: 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md);">
+                <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 16px; font-weight: 600;">添加设备</h3>
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <input 
+                        type="text" 
+                        id="device-id-input" 
+                        placeholder="输入设备ID" 
+                        style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-primary); background-color: var(--bg-primary); transition: var(--transition);"
+                    >
+                    <button 
+                        id="add-device-btn" 
+                        onclick="addDevice()" 
+                        style="padding: 12px 24px; background-color: var(--secondary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; transition: var(--transition); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
+                    >
+                        添加设备
+                    </button>
+                </div>
+                <div id="device-add-error" style="margin-top: 10px; color: var(--danger-color); font-size: 14px; display: none;"></div>
+            </div>
+            
+            <div id="devices-list" style="overflow-x: auto;">   
                 <div style="display: flex; flex-direction: column; align-items: center; padding: 60px 40px; color: var(--text-secondary);">
                     <div class="loading-spinner"></div>
                     <p style="margin-top: 20px; font-size: 16px; font-weight: 500;">加载中，请稍候...</p>
@@ -685,6 +747,12 @@
                 <ul class="image-list" id="image-list">
                     <li>暂无图片</li>
                 </ul>
+                <!-- 分页控件 -->
+                <div class="pagination" id="pagination">
+                    <button id="prev-page" onclick="loadImages(currentPage - 1)" disabled>上一页</button>
+                    <span id="page-info">第 1 页，共 1 页</span>
+                    <button id="next-page" onclick="loadImages(currentPage + 1)" disabled>下一页</button>
+                </div>
             </div>
         </div>
         
@@ -692,6 +760,48 @@
             <h2>系统日志</h2>
             <div class="logs" id="logs">
                 <div class="log-entry log-info">系统已启动，等待连接...</div>
+            </div>
+        </div>
+
+        <!-- 设备日志卡片 -->
+        <div class="card">
+            <h2>设备日志</h2>
+            
+            <!-- 筛选和分页控件 -->
+            <div class="filter-controls" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <label for="device-id-filter">设备ID:</label>
+                    <select id="device-id-filter" style="padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-primary);">
+                        <option value="">全部设备</option>
+                        <!-- 设备选项将通过JavaScript动态添加 -->
+                    </select>
+                </div>
+                <div style="display: flex; gap: 5px; align-items: center;">
+                    <label for="date-filter">日期:</label>
+                    <input type="date" id="date-filter" style="padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-primary);">
+                </div>
+                <button onclick="loadDeviceLogs(1)" style="padding: 8px 16px; background-color: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);">
+                    查询
+                </button>
+                <div style="margin-left: auto; font-size: 14px; color: var(--text-secondary);">
+                    共 <span id="device-logs-total">0</span> 条日志
+                </div>
+            </div>
+            
+            <!-- 日志列表 -->
+            <div class="logs" id="device-logs" style="margin-bottom: 20px;">
+                <div class="log-entry log-info">暂无设备日志数据</div>
+            </div>
+            
+            <!-- 分页控件 -->
+            <div class="pagination" id="device-logs-pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <button id="device-logs-prev" onclick="loadDeviceLogs(currentDeviceLogsPage - 1)" disabled>
+                    上一页
+                </button>
+                <span id="device-logs-page-info">第 1 页，共 1 页</span>
+                <button id="device-logs-next" onclick="loadDeviceLogs(currentDeviceLogsPage + 1)" disabled>
+                    下一页
+                </button>
             </div>
         </div>
     </div>
@@ -753,7 +863,10 @@
         // 接收新图片
         socket.on('new_image', (data) => {
             addLog(`收到新图片: ${data.filename}`, 'success');
-            addImageItem(data);
+            // 新图片到来时刷新第一页，确保最新图片显示
+            if (currentPage === 1) {
+                loadImages(1);
+            }
         });
         
         // 更新传感器数据显示
@@ -772,29 +885,7 @@
             document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString() || '--';
         }
         
-        // 添加图片到列表
-        function addImageItem(data) {
-            const li = document.createElement('li');
-            li.className = 'image-item';
-            li.innerHTML = `
-                <strong>设备ID:</strong> ${data.device_id}<br>
-                <strong>文件名:</strong> ${data.filename}<br>
-                <strong>时间:</strong> ${new Date(data.timestamp).toLocaleString()}<br>
-                <strong>大小:</strong> ${(data.size / 1024).toFixed(2)} KB<br>
-                <img src="/data/images/${data.filename}" alt="${data.filename}">
-            `;
-            
-            // 插入到列表开头
-            if (imageList.firstChild.textContent === '暂无图片') {
-                imageList.innerHTML = '';
-            }
-            imageList.insertBefore(li, imageList.firstChild);
-            
-            // 最多显示10张图片
-            if (imageList.children.length > 10) {
-                imageList.removeChild(imageList.lastChild);
-            }
-        }
+        // 图片列表更新函数已移至loadImages函数
         
         // 添加日志条目
         function addLog(message, type = 'info') {
@@ -847,11 +938,20 @@
                 });
         }
         
-        // 页面加载时获取用户信息
+        // 页面加载时获取用户信息和加载图片列表
         window.onload = function() {
             getUserInfo();
             refreshData();
+            loadImages(1); // 加载第一页图片
+            
+            // 初始化设备日志功能
+            initDeviceFilter();
+            loadDeviceLogs(1);
         };
+        
+        // 全局变量保存用户角色
+        var currentUserRole = '';
+        var currentDeviceId = '';
         
         // 获取用户信息
         function getUserInfo() {
@@ -868,6 +968,22 @@
                 .then(data => {
                     document.getElementById('welcome-text').textContent = 
                         `欢迎，${data.username} (${data.role === 'admin' ? '管理员' : '设备用户'})`;
+                    
+                    // 保存用户角色和设备ID到全局变量
+                    currentUserRole = data.role;
+                    currentDeviceId = data.device_id;
+                    
+                    // 根据用户角色调整设备列表卡片标题
+                    const devicesCardTitle = document.querySelector('#devices-card h2');
+                    devicesCardTitle.textContent = data.role === 'admin' ? '所有设备' : '我的设备';
+                    
+                    // 根据用户角色控制设备添加功能的显示
+                    const addDeviceSection = document.querySelector('#devices-card div[style="margin-bottom: 20px; padding: 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md);"]');
+                    if (data.role !== 'admin') {
+                        addDeviceSection.style.display = 'block';
+                    } else {
+                        addDeviceSection.style.display = 'none';
+                    }
                     
                     // 无论用户角色是什么，都加载设备列表
                     // 管理员可以查看所有设备，普通用户只能查看自己的设备
@@ -887,7 +1003,231 @@
             window.location.href = '/logout';
         }
         
-        // 加载设备列表（管理员）
+        // 分页相关全局变量
+        var currentPage = 1;
+        var totalPages = 1;
+        var totalImages = 0;
+        var imagesPerPage = 10;
+        
+        // 设备日志相关全局变量
+        var currentDeviceLogsPage = 1;
+        var totalDeviceLogsPages = 1;
+        var totalDeviceLogs = 0;
+        var deviceLogsPerPage = 20;
+        
+        // 加载图片列表
+        function loadImages(page) {
+            if (page < 1 || page > totalPages) {
+                return;
+            }
+            
+            // 显示加载状态
+            const imageList = document.getElementById('image-list');
+            imageList.innerHTML = '<li>加载中...</li>';
+            
+            fetch(`/api/images?page=${page}&per_page=${imagesPerPage}`)
+                .then(response => {
+                    // 检查是否被重定向
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return Promise.reject('已重定向到登录页面');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const images = data.data.images;
+                        const pagination = data.data.pagination;
+                        
+                        // 更新全局分页变量
+                        currentPage = pagination.current_page;
+                        totalPages = pagination.total_pages;
+                        totalImages = pagination.total;
+                        
+                        // 更新图片列表
+                        const imageList = document.getElementById('image-list');
+                        
+                        if (images.length === 0) {
+                            imageList.innerHTML = '<li>暂无图片</li>';
+                        } else {
+                            imageList.innerHTML = '';
+                            images.forEach(image => {
+                                const li = document.createElement('li');
+                                li.className = 'image-item';
+                                li.innerHTML = `
+                                    <strong>设备ID:</strong> ${image.device_id}<br>
+                                    <strong>设备名称:</strong> ${image.device_name || '未知设备'}<br>
+                                    <strong>文件名:</strong> ${image.original_filename || image.filename}<br>
+                                    <strong>时间:</strong> ${new Date(image.receive_time).toLocaleString()}<br>
+                                    <img src="/data/images/${image.filename}" alt="${image.filename}">
+                                `;
+                                imageList.appendChild(li);
+                            });
+                        }
+                        
+                        // 更新分页控件
+                        updatePaginationControls();
+                        addLog(`已加载第 ${currentPage} 页图片，共 ${totalImages} 张`, 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('加载图片失败:', error);
+                    if (error !== '已重定向到登录页面') {
+                        const imageList = document.getElementById('image-list');
+                        imageList.innerHTML = '<li>加载图片失败</li>';
+                        addLog(`加载图片失败: ${error}`, 'error');
+                    }
+                });
+        }
+        
+        // 更新分页控件状态
+        function updatePaginationControls() {
+            const prevPageBtn = document.getElementById('prev-page');
+            const nextPageBtn = document.getElementById('next-page');
+            const pageInfo = document.getElementById('page-info');
+            
+            // 更新按钮状态
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+            
+            // 更新页面信息
+            pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页 (${totalImages} 张图片)`;
+        }
+        
+        // 更新设备日志分页控件
+        function updateDeviceLogsPaginationControls() {
+            const prevBtn = document.getElementById('device-logs-prev');
+            const nextBtn = document.getElementById('device-logs-next');
+            const pageInfo = document.getElementById('device-logs-page-info');
+            const totalInfo = document.getElementById('device-logs-total');
+            
+            prevBtn.disabled = currentDeviceLogsPage === 1;
+            nextBtn.disabled = currentDeviceLogsPage === totalDeviceLogsPages;
+            pageInfo.textContent = `第 ${currentDeviceLogsPage} 页，共 ${totalDeviceLogsPages} 页`;
+            totalInfo.textContent = totalDeviceLogs;
+        }
+        
+        // 加载设备日志
+        function loadDeviceLogs(page) {
+            // 获取筛选条件
+            const deviceId = document.getElementById('device-id-filter').value;
+            const date = document.getElementById('date-filter').value;
+            
+            // 构建查询参数
+            const params = new URLSearchParams({
+                page: page,
+                per_page: deviceLogsPerPage
+            });
+            
+            if (deviceId) {
+                params.append('device_id', deviceId);
+            }
+            
+            if (date) {
+                params.append('date', date);
+            }
+            
+            // 显示加载状态
+            const deviceLogsContainer = document.getElementById('device-logs');
+            deviceLogsContainer.innerHTML = '<div class="log-entry log-info">加载中...</div>';
+            
+            // 发送请求
+            fetch(`/api/logs?${params.toString()}`)
+                .then(response => {
+                    // 检查是否被重定向
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return Promise.reject('已重定向到登录页面');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const logs = data.data.logs;
+                        const pagination = data.data.pagination;
+                        
+                        // 更新全局变量
+                        currentDeviceLogsPage = pagination.current_page;
+                        totalDeviceLogsPages = pagination.total_pages;
+                        totalDeviceLogs = pagination.total;
+                        
+                        // 更新日志列表
+                        const deviceLogsContainer = document.getElementById('device-logs');
+                        
+                        if (logs.length === 0) {
+                            deviceLogsContainer.innerHTML = '<div class="log-entry log-info">暂无设备日志数据</div>';
+                        } else {
+                            deviceLogsContainer.innerHTML = '';
+                            logs.forEach(log => {
+                                const logEntry = document.createElement('div');
+                                logEntry.className = 'log-entry';
+                                
+                                // 根据日志级别设置样式
+                                const level = log.level || 'info';
+                                logEntry.classList.add(`log-${level}`);
+                                
+                                // 格式化日志内容
+                                const timestamp = log.timestamp ? new Date(log.timestamp).toLocaleString() : '未知时间';
+                                const deviceId = log.device_id || 'unknown';
+                                const message = log.message || JSON.stringify(log);
+                                
+                                logEntry.innerHTML = `
+                                    <strong>${deviceId}</strong> <span style="color: var(--text-secondary); font-size: 12px;">${timestamp}</span>
+                                    <div style="margin-top: 5px; white-space: pre-wrap; word-break: break-word;">${message}</div>
+                                `;
+                                
+                                deviceLogsContainer.appendChild(logEntry);
+                            });
+                        }
+                        
+                        // 更新分页控件
+                        updateDeviceLogsPaginationControls();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载设备日志失败:', error);
+                    if (error !== '已重定向到登录页面') {
+                        const deviceLogsContainer = document.getElementById('device-logs');
+                        deviceLogsContainer.innerHTML = '<div class="log-entry log-error">加载设备日志失败</div>';
+                    }
+                });
+        }
+        
+        // 初始化设备下拉列表
+        function initDeviceFilter() {
+            fetch('/api/devices')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        const deviceSelect = document.getElementById('device-id-filter');
+                        const devices = data.data;
+                        
+                        // 去重设备列表
+                        const uniqueDevices = [];
+                        const deviceIds = new Set();
+                        
+                        devices.forEach(device => {
+                            if (!deviceIds.has(device.device_id)) {
+                                deviceIds.add(device.device_id);
+                                uniqueDevices.push(device);
+                            }
+                        });
+                        
+                        // 添加设备选项
+                        uniqueDevices.forEach(device => {
+                            const option = document.createElement('option');
+                            option.value = device.device_id;
+                            option.textContent = `${device.device_id} (${device.name})`;
+                            deviceSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('初始化设备筛选器失败:', error);
+                });
+        }
+        
+        // 加载设备列表
         function loadDevices() {
             fetch('/api/devices')
                 .then(response => {
@@ -1084,6 +1424,72 @@
             } else {
                 alert('该设备暂无图片');
             }
+        }
+        
+        // 添加设备
+        function addDevice() {
+            const deviceIdInput = document.getElementById('device-id-input');
+            const errorDiv = document.getElementById('device-add-error');
+            const deviceId = deviceIdInput.value.trim();
+            
+            // 清空之前的错误信息
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            
+            // 验证设备ID是否为空
+            if (!deviceId) {
+                errorDiv.textContent = '设备ID不能为空';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // 验证设备ID格式
+            const deviceIdPattern = /^[a-zA-Z0-9_-]{3,20}$/;
+            if (!deviceIdPattern.test(deviceId)) {
+                errorDiv.textContent = '设备ID格式无效，只允许字母、数字、下划线和连字符，长度3-20位';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            // 调用API添加设备
+            fetch('/api/add_device', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ device_id: deviceId })
+            })
+            .then(response => {
+                // 检查是否被重定向
+                if (response.redirected) {
+                    // 如果被重定向，跳转到登录页面
+                    window.location.href = response.url;
+                    return Promise.reject('已重定向到登录页面');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    // 添加成功
+                    alert(data.msg);
+                    deviceIdInput.value = '';
+                    loadDevices(); // 刷新设备列表
+                    addLog(`设备 ${deviceId} 添加成功`, 'success');
+                } else {
+                    // 添加失败
+                    errorDiv.textContent = `添加失败: ${data.msg}`;
+                    errorDiv.style.display = 'block';
+                    addLog(`设备 ${deviceId} 添加失败: ${data.msg}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('添加设备失败:', error);
+                // 只有当不是重定向错误时才显示提示
+                if (error !== '已重定向到登录页面') {
+                    errorDiv.textContent = '添加设备时发生网络错误';
+                    errorDiv.style.display = 'block';
+                }
+            });
         }
         
         // 删除图片
