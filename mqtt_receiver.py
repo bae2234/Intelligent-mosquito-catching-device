@@ -4,7 +4,7 @@ import sqlite3
 import time
 
 # 配置
-MQTT_BROKER = "10.1.0.8" 
+MQTT_BROKER = "111.230.253.226" 
 MQTT_PORT = 1883
 SENSOR_TOPIC = "control/sensor_data/+"
 DB_PATH = "./iot.db"

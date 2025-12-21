@@ -9,7 +9,7 @@ import requests
 class MQTTServer:
     def __init__(self):
         # 配置
-        self.MQTT_BROKER = "10.1.0.8"  # 服务器的内网 IP 地址
+        self.MQTT_BROKER = "111.230.253.226"  # 服务器的外网 IP 地址
         self.MQTT_PORT = 1883
         self.SENSOR_TOPIC = "control/sensor_data/+"
         self.COMMAND_TOPIC = "control/command/+"

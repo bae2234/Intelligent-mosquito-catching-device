@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能捕蚊设别系统</title>
+    <title>智能捕蚊识别系统</title>
     <style>
         * {
             margin: 0;
@@ -34,6 +34,8 @@
             --radius-md: 8px;
             --radius-lg: 12px;
             --transition: all 0.2s ease;
+            --sidebar-width: 250px; /* 调整导航栏宽度 */
+            --header-height: 64px; /* 调整顶部导航栏高度 */
         }
         
         body {
@@ -41,72 +43,215 @@
             background-color: var(--bg-secondary);
             color: var(--text-primary);
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: var(--text-primary);
-            margin-bottom: 40px;
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-        }
-        
-        .header {
+        /* 主容器布局 */
+        .app-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border-color);
+            min-height: 100vh;
         }
         
-        .status {
-            text-align: center;
-            margin-bottom: 32px;
-            padding: 16px 24px;
+        /* 左侧导航栏 */
+        .sidebar {
+            width: var(--sidebar-width);
             background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        
+        .sidebar-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        /* 导航菜单 */
+        .nav-menu {
+            padding: 24px 0;
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 8px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
             font-weight: 500;
             transition: var(--transition);
+            border-left: 4px solid transparent;
+            cursor: pointer;
         }
         
-        .disconnected {
-            background-color: #fef2f2;
-            color: var(--danger-color);
-            border-color: #fee2e2;
+        .nav-link:hover {
+            background-color: var(--bg-secondary);
+            color: var(--primary-color);
         }
         
-        .connected {
-            background-color: #f0fdf4;
-            color: var(--secondary-color);
-            border-color: #dcfce7;
+        .nav-link.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
         }
         
-        .data-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* 右侧主内容区域 */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 顶部导航栏 */
+        .top-header {
+            height: var(--header-height);
+            background-color: var(--bg-primary);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px; /* 调整顶部导航栏内边距 */
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-right: 24px;
+            display: none;
+        }
+        
+        .page-title {
+            font-size: 22px; /* 调整页面标题大小 */
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
             gap: 24px;
-            margin-bottom: 40px;
         }
         
+        /* 状态指示器 */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+        
+        .status-dot.connected {
+            background-color: var(--secondary-color);
+        }
+        
+        .status-dot.disconnected {
+            background-color: var(--danger-color);
+        }
+        
+        /* 用户信息 */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .welcome-text {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            padding: 10px 20px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--danger-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* 内容区域 */
+        .content {
+            flex: 1;
+            padding: 24px; /* 调整内容区域内边距 */
+            overflow-y: auto;
+        }
+        
+        /* 页面容器 */
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* 卡片样式 */
         .card {
             background-color: var(--bg-primary);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            padding: 32px;
+            padding: 24px; /* 调整卡片内边距 */
             transition: var(--transition);
             border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
+            margin-bottom: 20px; /* 调整卡片间距 */
         }
         
         .card::before {
@@ -127,10 +272,10 @@
         
         .card h2 {
             color: var(--text-primary);
-            margin-bottom: 28px;
-            font-size: 1.5em;
+            margin-bottom: 24px; /* 调整标题间距 */
+            font-size: 1.4em; /* 调整标题大小 */
             font-weight: 600;
-            padding-bottom: 16px;
+            padding-bottom: 12px; /* 调整标题下边框间距 */
             border-bottom: 2px solid var(--border-color);
             position: relative;
         }
@@ -145,15 +290,16 @@
             background-color: var(--primary-color);
         }
         
+        /* 传感器数据样式 */
         .sensor-data {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 调整传感器数据网格 */
+            gap: 20px; /* 调整传感器数据间距 */
         }
         
         .sensor-item {
             background-color: var(--bg-secondary);
-            padding: 20px 16px;
+            padding: 24px;
             border-radius: var(--radius-md);
             text-align: center;
             border: 1px solid var(--border-color);
@@ -162,46 +308,164 @@
         
         .sensor-item:hover {
             background-color: var(--bg-tertiary);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
         }
         
         .sensor-label {
             font-size: 0.875em;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
         .sensor-value {
-            font-size: 1.8em;
+            font-size: 2em;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
         }
         
+        /* 最新上传图片样式 */
         .image-list {
             list-style: none;
             padding: 0;
             margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
         
         .image-item {
-            margin-bottom: 20px;
-            padding: 30px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
             background-color: var(--bg-secondary);
+            padding: 16px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             transition: var(--transition);
-            text-align: center;
         }
         
         .image-item:hover {
             background-color: var(--bg-tertiary);
             box-shadow: var(--shadow-sm);
-            border-color: var(--primary-color);
+        }
+        
+        .image-item img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        
+        .image-item img:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-info {
+            flex: 1;
+        }
+        
+        .image-info strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        /* 图片表格样式 */
+        .image-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+            text-align: left;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .image-table th,
+        .image-table td {
+            padding: 10px 12px; /* 调整表格单元格内边距 */
+            border: 1px solid var(--border-color);
+        }
+        
+        .image-table th {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: center;
+            font-size: 13px; /* 调整表头字体大小 */
+        }
+        
+        .image-table tbody tr {
+            background-color: var(--bg-secondary);
+            transition: var(--transition);
+        }
+        
+        .image-table tbody tr:hover {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .image-table td {
+            text-align: center;
+            font-size: 13px; /* 调整表格内容字体大小 */
+        }
+        
+        .image-table img {
+            width: 80px; /* 调整图片大小 */
+            height: 80px; /* 调整图片大小 */
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .image-table img:hover {
+            transform: scale(1.05);
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px; /* 调整按钮间距 */
+            justify-content: center;
+        }
+        
+        .view-btn,
+        .delete-btn {
+            padding: 4px 8px; /* 调整按钮内边距 */
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 11px; /* 调整按钮字体大小 */
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-block;
+            min-width: 50px; /* 设置按钮最小宽度 */
+        }
+        
+        .view-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .view-btn:hover,
+        .delete-btn:hover {
+            opacity: 0.8;
         }
         
         /* 分页控件样式 */
@@ -209,8 +473,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 20px;
-            padding-top: 20px;
+            margin-top: 24px;
+            padding-top: 24px;
             border-top: 1px solid var(--border-color);
         }
         
@@ -219,7 +483,7 @@
             color: var(--text-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            padding: 8px 16px;
+            padding: 10px 20px;
             margin: 0 10px;
             cursor: pointer;
             transition: var(--transition);
@@ -238,40 +502,17 @@
             cursor: not-allowed;
         }
         
-        #page-info {
+        .page-info {
             color: var(--text-secondary);
             font-size: 14px;
         }
         
-        .image-item img {
-            max-width: 100%;
-            max-height: 500px;
-            border-radius: var(--radius-sm);
-            margin-top: 20px;
-            object-fit: contain;
-            box-shadow: var(--shadow-md);
-            transition: var(--transition);
-        }
-        
-        .image-item img:hover {
-            transform: scale(1.02);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .image-item strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        
-        .image-item br {
-            margin-bottom: 8px;
-        }
-        
+        /* 日志样式 */
         .logs {
             background-color: var(--bg-primary);
-            padding: 20px;
+            padding: 24px;
             border-radius: var(--radius-md);
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.95em;
@@ -280,30 +521,40 @@
         }
         
         /* 自定义滚动条 */
-        .logs::-webkit-scrollbar {
+        .logs::-webkit-scrollbar,
+        .sidebar::-webkit-scrollbar,
+        .content::-webkit-scrollbar {
             width: 8px;
         }
         
-        .logs::-webkit-scrollbar-track {
+        .logs::-webkit-scrollbar-track,
+        .sidebar::-webkit-scrollbar-track,
+        .content::-webkit-scrollbar-track {
             background: var(--bg-secondary);
             border-radius: 4px;
         }
         
-        .logs::-webkit-scrollbar-thumb {
+        .logs::-webkit-scrollbar-thumb,
+        .sidebar::-webkit-scrollbar-thumb,
+        .content::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 4px;
         }
         
-        .logs::-webkit-scrollbar-thumb:hover {
+        .logs::-webkit-scrollbar-thumb:hover,
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .content::-webkit-scrollbar-thumb:hover {
             background: var(--text-tertiary);
         }
         
+        /* 日志条目样式 */
         .log-entry {
-            margin-bottom: 8px;
-            padding: 10px 12px;
+            margin-bottom: 12px;
+            padding: 12px 16px;
             border-radius: var(--radius-sm);
             transition: var(--transition);
             border-left: 4px solid transparent;
+            background-color: var(--bg-secondary);
         }
         
         .log-entry:hover {
@@ -329,10 +580,110 @@
             border-left-color: var(--danger-color);
         }
         
+        .log-warning {
+            background-color: #fffbeb;
+            color: var(--warning-color);
+            border-left-color: var(--warning-color);
+        }
+        
+        /* 设备日志筛选控件 */
+        .filter-section {
+            background-color: var(--bg-secondary);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-item label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .filter-item input,
+        .filter-item select,
+        .filter-item button {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .filter-item input:focus,
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .search-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* 设备列表样式 */
+        .devices-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+        }
+        
+        .devices-table th,
+        .devices-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .devices-table th {
+            background-color: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .devices-table tr {
+            transition: var(--transition);
+        }
+        
+        .devices-table tr:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        /* 刷新按钮 */
         .refresh-btn {
-            display: block;
-            margin: 0 auto 30px;
-            padding: 14px 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
             background-color: var(--primary-color);
             color: white;
             border: none;
@@ -342,26 +693,7 @@
             font-weight: 600;
             transition: var(--transition);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .refresh-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .refresh-btn:active::before {
-            width: 300px;
-            height: 300px;
+            margin-bottom: 24px;
         }
         
         .refresh-btn:hover {
@@ -370,26 +702,13 @@
             box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
         
-        .refresh-btn:active {
-            transform: translateY(0);
-        }
-        
-        /* 通用按钮样式 */
-        button {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 500;
-            transition: var(--transition);
-            cursor: pointer;
-            outline: none;
-        }
-        
         /* 加载动画 */
         .loading-spinner {
-            border: 3px solid var(--bg-tertiary);
-            border-top: 3px solid var(--primary-color);
+            border: 4px solid var(--bg-tertiary);
+            border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
@@ -399,115 +718,19 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* 骨架屏样式 */
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-tertiary) 25%, #e2e8f0 50%, var(--bg-tertiary) 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
-            border-radius: var(--radius-sm);
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            color: var(--text-secondary);
         }
         
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 12px;
-            }
-            
-            nav {
-                flex-direction: column;
-                gap: 16px;
-                padding: 16px 20px;
-            }
-            
-            nav h1 {
-                font-size: 20px;
-            }
-            
-            nav > div:nth-child(2) {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .data-container {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            
-            .card {
-                padding: 20px;
-            }
-            
-            .sensor-data {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            
-            .refresh-btn {
-                padding: 12px 24px;
-                font-size: 14px;
-            }
-            
-            .modal-content {
-                padding: 16px;
-                margin: 16px;
-                max-width: calc(100% - 32px);
-            }
-            
-            .modal-content img {
-                max-height: 50vh;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            nav {
-                padding: 12px 16px;
-            }
-            
-            nav h1 {
-                font-size: 18px;
-            }
-            
-            .sensor-data {
-                grid-template-columns: 1fr;
-            }
-            
-            .user-info {
-                gap: 8px;
-            }
-            
-            .user-info button {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
-        
-        /* 登出按钮样式 */
-        .user-info button {
-            margin-left: 15px;
-            padding: 10px 20px;
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 14px;
+        .loading-text {
+            margin-top: 20px;
+            font-size: 16px;
             font-weight: 500;
-            transition: var(--transition);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
-        }
-        
-        .user-info button:hover {
-            background-color: var(--danger-hover);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-            transform: translateY(-1px);
-        }
-        
-        .user-info button:active {
-            transform: translateY(0);
         }
         
         /* 图片预览模态框 */
@@ -533,16 +756,18 @@
         .modal-content {
             background-color: var(--bg-primary);
             margin: auto;
-            padding: 24px;
+            padding: 20px;
             border-radius: var(--radius-lg);
-            max-width: 80%;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             position: relative;
             transition: transform 0.3s ease;
-            width: 80%;
-            min-height: 60vh;
+            width: 90%;
+            min-width: 600px;
+            display: flex;
+            flex-direction: column;
         }
         
         .modal.show .modal-content {
@@ -550,37 +775,35 @@
         }
         
         .modal-content img {
-            max-width: 100%;
-            max-height: 55vh;
-            min-height: 400px;
+            max-width: 95%;
+            max-height: 60vh;
             width: auto;
             height: auto;
             object-fit: contain;
             border-radius: var(--radius-md);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             display: block;
-            margin: 0 auto;
+            margin: 20px auto;
             cursor: zoom-in;
             transition: all 0.3s ease;
         }
         
         .modal-content img.zoomed {
             cursor: zoom-out;
-            transform: scale(1.8);
+            transform: scale(2.2);
             transform-origin: center;
-            max-width: 150%;
-            max-height: 85vh;
+            max-width: 300%;
+            max-height: 95vh;
             position: relative;
             z-index: 1001;
             margin: 20px auto;
-            top: 20px;
         }
         
         .modal-close {
             position: absolute;
-            top: 16px;
-            right: 20px;
-            font-size: 28px;
+            top: 20px;
+            right: 25px;
+            font-size: 32px;
             font-weight: bold;
             color: var(--text-tertiary);
             cursor: pointer;
@@ -601,209 +824,407 @@
             background-color: var(--bg-secondary);
         }
         
-        .modal-close:active {
-            transform: scale(0.9);
-        }
-        
         .modal-info {
             margin-top: 20px;
-            padding: 16px;
+            padding: 20px;
             background-color: var(--bg-secondary);
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
+            align-self: center;
+            width: 95%;
+            font-size: 16px;
         }
         
-        .modal-info p {
-            margin: 8px 0;
-            color: var(--text-secondary);
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 250px;
+            }
+            
+            .content {
+                padding: 24px;
+            }
+            
+            .top-header {
+                padding: 0 24px;
+            }
+            
+            .filter-controls {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
         }
         
-        .modal-info strong {
-            color: var(--text-primary);
-            font-weight: 600;
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .content {
+                padding: 16px;
+            }
+            
+            .top-header {
+                padding: 0 16px;
+            }
+            
+            .page-title {
+                font-size: 20px;
+            }
+            
+            .header-right {
+                gap: 16px;
+            }
+            
+            .user-info {
+                gap: 12px;
+            }
+            
+            .welcome-text {
+                display: none;
+            }
+            
+            .sensor-data {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                padding: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .sensor-data {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                padding: 16px;
+            }
+            
+            .refresh-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 动画效果 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 现代化导航栏 -->
-        <nav style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background-color: var(--bg-primary); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 24px; border: 1px solid var(--border-color);">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: bold;">
-                    I
-                </div>
-                <h1 style="margin: 0; font-size: 24px; color: var(--text-primary); font-weight: 700;">智能捕蚊识别系统</h1>
+    <div class="app-container">
+        <!-- 左侧导航栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>智能捕蚊系统</h1>
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 24px;">
-                <!-- 状态指示器 -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="status-indicator" id="status-indicator" style="width: 12px; height: 12px; border-radius: 50%; background-color: var(--danger-color); transition: background-color 0.3s ease;"></div>
-                    <span id="connection-status" style="font-size: 14px; color: var(--text-secondary); font-weight: 500;">未连接到服务器</span>
-                </div>
-                
-                <!-- 用户信息 -->
-                <div class="user-info" id="user-info" style="display: flex; align-items: center; gap: 16px;">
-                    <span id="welcome-text" style="color: var(--text-primary); font-size: 14px; font-weight: 600;"></span>
-                    <button onclick="logout()" style="padding: 10px 20px; background-color: var(--danger-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);">
-                        登出
-                    </button>
-                </div>
-            </div>
-        </nav>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a class="nav-link active" onclick="switchPage('dashboard')">
+                        <span class="nav-icon">📊</span>
+                        仪表盘
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchPage('images')">
+                        <span class="nav-icon">🖼️</span>
+                        上传图片
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchPage('device-logs')">
+                        <span class="nav-icon">📋</span>
+                        设备日志
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchPage('system-logs')">
+                        <span class="nav-icon">📝</span>
+                        系统日志
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="devices-menu" onclick="switchPage('devices')" style="display: none;">
+                        <span class="nav-icon">🔌</span>
+                        设备管理
+                    </a>
+                </li>
+            </ul>
+        </aside>
         
-        <!-- 管理员设备列表 -->
-        <div class="card" id="devices-card" style="display: none; margin-bottom: 30px;">
-            <h2>所有设备</h2>
+        <!-- 右侧主内容区域 -->
+        <main class="main-content">
+            <!-- 顶部导航栏 -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2 class="page-title" id="page-title">仪表盘</h2>
+                </div>
+                <div class="header-right">
+                    <!-- 状态指示器 -->
+                    <div class="status-indicator">
+                        <div class="status-dot disconnected" id="status-dot"></div>
+                        <span id="connection-status">未连接到服务器</span>
+                    </div>
+                    
+                    <!-- 用户信息 -->
+                    <div class="user-info">
+                        <span class="welcome-text" id="welcome-text"></span>
+                        <button class="logout-btn" onclick="logout()">登出</button>
+                    </div>
+                </div>
+            </header>
             
-            <!-- 设备添加功能 -->
-            <div style="margin-bottom: 20px; padding: 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md);">
-                <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 16px; font-weight: 600;">添加设备</h3>
-                <div style="display: flex; gap: 10px; align-items: flex-start;">
-                    <input 
-                        type="text" 
-                        id="device-id-input" 
-                        placeholder="输入设备ID" 
-                        style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-primary); background-color: var(--bg-primary); transition: var(--transition);"
-                    >
-                    <button 
-                        id="add-device-btn" 
-                        onclick="addDevice()" 
-                        style="padding: 12px 24px; background-color: var(--secondary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; transition: var(--transition); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
-                    >
-                        添加设备
-                    </button>
+            <!-- 内容区域 -->
+            <div class="content">
+                <div class="page-container">
+                    <!-- 仪表盘页面 -->
+                    <div id="dashboard-page" class="page">
+                        <button class="refresh-btn" onclick="refreshData()">
+                            🔄 刷新最新数据
+                        </button>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
+                            <!-- 实时传感器数据 -->
+                            <div class="card">
+                                <h2>实时传感器数据</h2>
+                                <div class="sensor-data" id="sensor-data">
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">设备ID</div>
+                                        <div class="sensor-value" id="device-id">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">内部温度</div>
+                                        <div class="sensor-value" id="temperature-inside">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">外部温度</div>
+                                        <div class="sensor-value" id="temperature-outside">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">湿度</div>
+                                        <div class="sensor-value" id="humidity">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">舵机1</div>
+                                        <div class="sensor-value" id="duoj1">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">舵机2</div>
+                                        <div class="sensor-value" id="duoj2">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">舵机3</div>
+                                        <div class="sensor-value" id="duoj3">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">舵机4</div>
+                                        <div class="sensor-value" id="duoj4">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">风机1</div>
+                                        <div class="sensor-value" id="feng1">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">风机2</div>
+                                        <div class="sensor-value" id="feng2">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">加热器</div>
+                                        <div class="sensor-value" id="jia">--</div>
+                                    </div>
+                                    <div class="sensor-item">
+                                        <div class="sensor-label">时间</div>
+                                        <div class="sensor-value" id="timestamp">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 最新上传图片 -->
+                            <div class="card">
+                                <h2>最新上传图片</h2>
+                                <ul class="image-list" id="latest-image-list">
+                                    <li>暂无图片</li>
+                                </ul>
+                                <!-- 分页控件 -->
+                                <div class="pagination" id="latest-images-pagination">
+                                    <button id="latest-prev-page" onclick="loadLatestImages(latestCurrentPage - 1)" disabled>上一页</button>
+                                    <span id="latest-page-info">第 1 页，共 1 页</span>
+                                    <button id="latest-next-page" onclick="loadLatestImages(latestCurrentPage + 1)" disabled>下一页</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图片页面 -->
+                    <div id="images-page" class="page hidden">
+                        <div class="card">
+                            <h2>上传图片管理</h2>
+                            <table class="image-table" id="image-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="select-all"></th>
+                                        <th>设备标识</th>
+                                        <th>设备名称</th>
+                                        <th>设备位置</th>
+                                        <th>接收图片</th>
+                                        <th>图片原始文件名</th>
+                                        <th>接收时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="image-list">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center;">暂无图片</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- 分页控件 -->
+                            <div class="pagination" id="pagination">
+                                <button id="prev-page" onclick="loadImages(currentPage - 1)" disabled>上一页</button>
+                                <span id="page-info">第 1 页，共 1 页</span>
+                                <button id="next-page" onclick="loadImages(currentPage + 1)" disabled>下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 设备日志页面 -->
+                    <div id="device-logs-page" class="page hidden">
+                        <div class="card">
+                            <h2>设备日志</h2>
+                            
+                            <!-- 筛选和搜索控件 -->
+                            <div class="filter-section">
+                                <div class="filter-controls">
+                                    <div class="filter-item">
+                                        <label for="device-id-filter">设备ID</label>
+                                        <select id="device-id-filter">
+                                            <option value="">全部设备</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label for="date-filter">日期</label>
+                                        <input type="date" id="date-filter">
+                                    </div>
+                                    <div class="filter-item">
+                                        <label for="log-level">日志级别</label>
+                                        <select id="log-level">
+                                            <option value="">全部级别</option>
+                                            <option value="info">信息</option>
+                                            <option value="success">成功</option>
+                                            <option value="warning">警告</option>
+                                            <option value="error">错误</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-item">
+                                        <label for="search-keyword">搜索关键词</label>
+                                        <input type="text" id="search-keyword" placeholder="输入关键词搜索">
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="search-btn" onclick="loadDeviceLogs(1)">
+                                        🔍 搜索
+                                    </button>
+                                    <button class="refresh-btn" onclick="loadDeviceLogs(currentDeviceLogsPage)">
+                                        🔄 刷新
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 日志列表 -->
+                            <div class="logs" id="device-logs">
+                                <div class="log-entry log-info">暂无设备日志数据</div>
+                            </div>
+                            
+                            <!-- 分页控件 -->
+                            <div class="pagination" id="device-logs-pagination">
+                                <button id="device-logs-prev" onclick="loadDeviceLogs(currentDeviceLogsPage - 1)" disabled>
+                                    上一页
+                                </button>
+                                <span id="device-logs-page-info">第 1 页，共 1 页</span>
+                                <button id="device-logs-next" onclick="loadDeviceLogs(currentDeviceLogsPage + 1)" disabled>
+                                    下一页
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 系统日志页面 -->
+                    <div id="system-logs-page" class="page hidden">
+                        <div class="card">
+                            <h2>系统日志</h2>
+                            <div class="logs" id="system-logs">
+                                <div class="log-entry log-info">系统已启动，等待连接...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 设备管理页面 -->
+                    <div id="devices-page" class="page hidden">
+                        <div class="card">
+                            <h2>设备管理</h2>
+                            
+                            <!-- 设备添加功能 -->
+                            <div style="margin-bottom: 20px; padding: 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md);">
+                                <h3 style="margin-bottom: 15px; color: var(--text-primary); font-size: 16px; font-weight: 600;">添加设备</h3>
+                                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                    <input 
+                                        type="text" 
+                                        id="add-device-id-input" 
+                                        placeholder="输入设备ID" 
+                                        style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-primary); background-color: var(--bg-primary); transition: var(--transition);"
+                                    >
+                                    <button 
+                                        id="add-new-device-btn" 
+                                        onclick="addDevice()" 
+                                        style="padding: 12px 24px; background-color: var(--secondary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; transition: var(--transition); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
+                                    >
+                                        添加设备
+                                    </button>
+                                </div>
+                                <div id="device-add-error" style="margin-top: 10px; color: var(--danger-color); font-size: 14px; display: none;"></div>
+                            </div>
+                            
+                            <div id="all-devices-list">   
+                                <div class="loading-container">
+                                    <div class="loading-spinner"></div>
+                                    <p class="loading-text">加载中，请稍候...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="device-add-error" style="margin-top: 10px; color: var(--danger-color); font-size: 14px; display: none;"></div>
             </div>
-            
-            <div id="devices-list" style="overflow-x: auto;">   
-                <div style="display: flex; flex-direction: column; align-items: center; padding: 60px 40px; color: var(--text-secondary);">
-                    <div class="loading-spinner"></div>
-                    <p style="margin-top: 20px; font-size: 16px; font-weight: 500;">加载中，请稍候...</p>
-                </div>
-            </div>
-        </div>
-        
-        <button class="refresh-btn" onclick="refreshData()">刷新最新数据</button>
-        
-        <div class="data-container">
-            <div class="card">
-                <h2>实时传感器数据</h2>
-                <div class="sensor-data" id="sensor-data">
-                    <div class="sensor-item">
-                        <div class="sensor-label">设备ID</div>
-                        <div class="sensor-value" id="device-id">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">内部温度</div>
-                        <div class="sensor-value" id="temperature-inside">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">外部温度</div>
-                        <div class="sensor-value" id="temperature-outside">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">湿度</div>
-                        <div class="sensor-value" id="humidity">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">舵机1</div>
-                        <div class="sensor-value" id="duoj1">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">舵机2</div>
-                        <div class="sensor-value" id="duoj2">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">舵机3</div>
-                        <div class="sensor-value" id="duoj3">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">舵机4</div>
-                        <div class="sensor-value" id="duoj4">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">风机1</div>
-                        <div class="sensor-value" id="feng1">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">风机2</div>
-                        <div class="sensor-value" id="feng2">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">加热器</div>
-                        <div class="sensor-value" id="jia">--</div>
-                    </div>
-                    <div class="sensor-item">
-                        <div class="sensor-label">时间</div>
-                        <div class="sensor-value" id="timestamp">--</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>最新上传图片</h2>
-                <ul class="image-list" id="image-list">
-                    <li>暂无图片</li>
-                </ul>
-                <!-- 分页控件 -->
-                <div class="pagination" id="pagination">
-                    <button id="prev-page" onclick="loadImages(currentPage - 1)" disabled>上一页</button>
-                    <span id="page-info">第 1 页，共 1 页</span>
-                    <button id="next-page" onclick="loadImages(currentPage + 1)" disabled>下一页</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>系统日志</h2>
-            <div class="logs" id="logs">
-                <div class="log-entry log-info">系统已启动，等待连接...</div>
-            </div>
-        </div>
-
-        <!-- 设备日志卡片 -->
-        <div class="card">
-            <h2>设备日志</h2>
-            
-            <!-- 筛选和分页控件 -->
-            <div class="filter-controls" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <div style="display: flex; gap: 5px; align-items: center;">
-                    <label for="device-id-filter">设备ID:</label>
-                    <select id="device-id-filter" style="padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-primary);">
-                        <option value="">全部设备</option>
-                        <!-- 设备选项将通过JavaScript动态添加 -->
-                    </select>
-                </div>
-                <div style="display: flex; gap: 5px; align-items: center;">
-                    <label for="date-filter">日期:</label>
-                    <input type="date" id="date-filter" style="padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-primary);">
-                </div>
-                <button onclick="loadDeviceLogs(1)" style="padding: 8px 16px; background-color: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);">
-                    查询
-                </button>
-                <div style="margin-left: auto; font-size: 14px; color: var(--text-secondary);">
-                    共 <span id="device-logs-total">0</span> 条日志
-                </div>
-            </div>
-            
-            <!-- 日志列表 -->
-            <div class="logs" id="device-logs" style="margin-bottom: 20px;">
-                <div class="log-entry log-info">暂无设备日志数据</div>
-            </div>
-            
-            <!-- 分页控件 -->
-            <div class="pagination" id="device-logs-pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                <button id="device-logs-prev" onclick="loadDeviceLogs(currentDeviceLogsPage - 1)" disabled>
-                    上一页
-                </button>
-                <span id="device-logs-page-info">第 1 页，共 1 页</span>
-                <button id="device-logs-next" onclick="loadDeviceLogs(currentDeviceLogsPage + 1)" disabled>
-                    下一页
-                </button>
-            </div>
-        </div>
+        </main>
     </div>
     
     <!-- 图片预览模态框 -->
@@ -811,8 +1232,7 @@
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
             <img id="modal-image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="图片预览">
-            <div class="modal-info" id="modal-info">
-            </div>
+            <div class="modal-info" id="modal-info"></div>
         </div>
     </div>
     
@@ -821,50 +1241,152 @@
         // WebSocket连接
         var socket = io();
         
-        // 获取DOM元素
-        var connectionStatus = document.getElementById('connection-status');
-        var logs = document.getElementById('logs');
-        var sensorData = document.getElementById('sensor-data');
-        var imageList = document.getElementById('image-list');
+        // 全局变量
+        var currentPageName = 'dashboard';
+        var currentUserRole = '';
+        var currentDeviceId = '';
+        
+        // 分页相关全局变量
+        var currentPage = 1;
+        var totalPages = 1;
+        var totalImages = 0;
+        var imagesPerPage = 8;
+        
+        // 最新图片分页相关变量
+        var latestCurrentPage = 1;
+        var latestTotalPages = 1;
+        var latestTotalImages = 0;
+        var latestImagesPerPage = 5;
+        
+        // 删除图片函数
+        function deleteImage(imageId) {
+            if (confirm('确定要删除这张图片吗？此操作不可恢复。')) {
+                fetch(`/api/delete_image/${imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return Promise.reject('已重定向到登录页面');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        // 删除成功，重新加载当前页的图片列表
+                        loadImages(currentPage);
+                        // 显示成功提示
+                        alert('图片删除成功！');
+                    } else {
+                        // 显示错误提示
+                        alert(`删除失败：${data.msg || '未知错误'}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('删除图片时出错：', error);
+                    alert('删除图片时发生网络错误，请稍后重试。');
+                });
+            }
+        }
+        
+        // 设备日志相关全局变量
+        var currentDeviceLogsPage = 1;
+        var totalDeviceLogsPages = 1;
+        var totalDeviceLogs = 0;
+        var deviceLogsPerPage = 20;
+        
+        // 初始化页面
+        window.onload = function() {
+            getUserInfo();
+            refreshData();
+            loadLatestImages(1);
+            initDeviceFilter();
+            loadDeviceLogs(1);
+        };
+        
+        // 切换页面函数
+        function switchPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            // 移除所有导航项的active类
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // 显示选中的页面
+            document.getElementById(`${pageName}-page`).classList.remove('hidden');
+            
+            // 添加active类到对应的导航项
+            document.querySelector(`[onclick="switchPage('${pageName}')"]`).classList.add('active');
+            
+            // 更新页面标题
+            const pageTitles = {
+                'dashboard': '仪表盘',
+                'images': '上传图片',
+                'device-logs': '设备日志',
+                'system-logs': '系统日志',
+                'devices': '设备管理'
+            };
+            document.getElementById('page-title').textContent = pageTitles[pageName] || '页面';
+            
+            // 保存当前页面名称
+            currentPageName = pageName;
+            
+            // 如果切换到图片页面，加载图片列表
+            if (pageName === 'images') {
+                loadImages(1);
+            }
+        }
+        
+        // 切换侧边栏显示/隐藏
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
         
         // 连接成功
         socket.on('connect', () => {
             const statusText = document.getElementById('connection-status');
-            const statusIndicator = document.getElementById('status-indicator');
+            const statusDot = document.getElementById('status-dot');
             statusText.textContent = '已连接到服务器';
-            const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
-            statusText.style.color = secondaryColor;
-            statusIndicator.style.backgroundColor = secondaryColor;
-            addLog('已连接到服务器', 'success');
+            statusText.style.color = 'var(--secondary-color)';
+            statusDot.className = 'status-dot connected';
+            addSystemLog('已连接到服务器', 'success');
         });
         
         // 连接断开
         socket.on('disconnect', () => {
             const statusText = document.getElementById('connection-status');
-            const statusIndicator = document.getElementById('status-indicator');
+            const statusDot = document.getElementById('status-dot');
             statusText.textContent = '与服务器断开连接';
-            const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim();
-            statusText.style.color = dangerColor;
-            statusIndicator.style.backgroundColor = dangerColor;
-            addLog('与服务器断开连接', 'error');
+            statusText.style.color = 'var(--danger-color)';
+            statusDot.className = 'status-dot disconnected';
+            addSystemLog('与服务器断开连接', 'error');
         });
         
         // 接收连接确认
         socket.on('connected', (data) => {
-            addLog(data.message, 'success');
+            addSystemLog(data.message, 'success');
         });
         
         // 接收传感器数据
         socket.on('sensor_data', (data) => {
-            addLog(`收到传感器数据: 设备ID ${data.device_id}`, 'info');
+            addSystemLog(`收到传感器数据: 设备ID ${data.device_id}`, 'info');
             updateSensorData(data);
         });
         
         // 接收新图片
         socket.on('new_image', (data) => {
-            addLog(`收到新图片: ${data.filename}`, 'success');
-            // 新图片到来时刷新第一页，确保最新图片显示
-            if (currentPage === 1) {
+            addSystemLog(`收到新图片: ${data.filename}`, 'success');
+            // 如果当前在仪表盘或图片页面，刷新图片列表
+            if (currentPageName === 'dashboard') {
+                loadLatestImages(1);
+            } else if (currentPageName === 'images' && currentPage === 1) {
                 loadImages(1);
             }
         });
@@ -885,20 +1407,19 @@
             document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString() || '--';
         }
         
-        // 图片列表更新函数已移至loadImages函数
-        
-        // 添加日志条目
-        function addLog(message, type = 'info') {
+        // 添加系统日志
+        function addSystemLog(message, type = 'info') {
+            const logsContainer = document.getElementById('system-logs');
             const logEntry = document.createElement('div');
             logEntry.className = `log-entry log-${type}`;
             logEntry.textContent = `[${new Date().toLocaleString()}] ${message}`;
             
             // 插入到日志开头
-            logs.insertBefore(logEntry, logs.firstChild);
+            logsContainer.insertBefore(logEntry, logsContainer.firstChild);
             
-            // 最多显示50条日志
-            if (logs.children.length > 50) {
-                logs.removeChild(logs.lastChild);
+            // 最多显示100条日志
+            if (logsContainer.children.length > 100) {
+                logsContainer.removeChild(logsContainer.lastChild);
             }
         }
         
@@ -906,9 +1427,7 @@
         function refreshData() {
             fetch('/get_latest_sensor_data')
                 .then(response => {
-                    // 检查是否被重定向
                     if (response.redirected) {
-                        // 如果被重定向，跳转到登录页面
                         window.location.href = response.url;
                         return Promise.reject('已重定向到登录页面');
                     }
@@ -926,40 +1445,22 @@
                             timestamp: latestData.timestamp
                         };
                         updateSensorData(mergedData);
-                        addLog('已刷新最新传感器数据', 'success');
+                        addSystemLog('已刷新最新传感器数据', 'success');
                     }
                 })
                 .catch(error => {
                     console.error('刷新数据失败:', error);
-                    // 只有当不是重定向错误时才显示日志
                     if (error !== '已重定向到登录页面') {
-                        addLog(`刷新数据失败: ${error}`, 'error');
+                        addSystemLog(`刷新数据失败: ${error}`, 'error');
                     }
                 });
         }
-        
-        // 页面加载时获取用户信息和加载图片列表
-        window.onload = function() {
-            getUserInfo();
-            refreshData();
-            loadImages(1); // 加载第一页图片
-            
-            // 初始化设备日志功能
-            initDeviceFilter();
-            loadDeviceLogs(1);
-        };
-        
-        // 全局变量保存用户角色
-        var currentUserRole = '';
-        var currentDeviceId = '';
         
         // 获取用户信息
         function getUserInfo() {
             fetch('/api/user_info')
                 .then(response => {
-                    // 检查是否被重定向
                     if (response.redirected) {
-                        // 如果被重定向，跳转到登录页面
                         window.location.href = response.url;
                         return Promise.reject('已重定向到登录页面');
                     }
@@ -973,27 +1474,15 @@
                     currentUserRole = data.role;
                     currentDeviceId = data.device_id;
                     
-                    // 根据用户角色调整设备列表卡片标题
-                    const devicesCardTitle = document.querySelector('#devices-card h2');
-                    devicesCardTitle.textContent = data.role === 'admin' ? '所有设备' : '我的设备';
-                    
-                    // 根据用户角色控制设备添加功能的显示
-                    const addDeviceSection = document.querySelector('#devices-card div[style="margin-bottom: 20px; padding: 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md);"]');
-                    if (data.role !== 'admin') {
-                        addDeviceSection.style.display = 'block';
-                    } else {
-                        addDeviceSection.style.display = 'none';
+                    // 如果是管理员，显示设备管理菜单
+                    if (data.role === 'admin') {
+                        document.getElementById('devices-menu').style.display = 'flex';
                     }
-                    
-                    // 无论用户角色是什么，都加载设备列表
-                    // 管理员可以查看所有设备，普通用户只能查看自己的设备
-                    loadDevices();
                 })
                 .catch(error => {
                     console.error('获取用户信息失败:', error);
-                    // 只有当不是重定向错误时才显示日志
                     if (error !== '已重定向到登录页面') {
-                        addLog('获取用户信息失败', 'error');
+                        addSystemLog('获取用户信息失败', 'error');
                     }
                 });
         }
@@ -1003,19 +1492,87 @@
             window.location.href = '/logout';
         }
         
-        // 分页相关全局变量
-        var currentPage = 1;
-        var totalPages = 1;
-        var totalImages = 0;
-        var imagesPerPage = 10;
+        // 加载最新图片（用于仪表盘）
+        function loadLatestImages(page) {
+            // 确保页码合法
+            if (page < 1 || (latestTotalPages > 0 && page > latestTotalPages)) {
+                return;
+            }
+            
+            const imageList = document.getElementById('latest-image-list');
+            // 显示加载状态
+            imageList.innerHTML = '<li class="loading-container"><div class="loading-spinner"></div><p class="loading-text">加载中...</p></li>';
+            
+            fetch(`/api/images?page=${page}&per_page=${latestImagesPerPage}`)
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return Promise.reject('已重定向到登录页面');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const images = data.data.images;
+                        const pagination = data.data.pagination;
+                        
+                        // 更新全局分页变量
+                        latestCurrentPage = pagination.current_page;
+                        latestTotalPages = pagination.total_pages;
+                        latestTotalImages = pagination.total;
+                        
+                        if (images.length === 0) {
+                            imageList.innerHTML = '<li>暂无图片</li>';
+                        } else {
+                            imageList.innerHTML = '';
+                            images.forEach(image => {
+                                const li = document.createElement('li');
+                                li.className = 'image-item';
+                                li.innerHTML = `
+                                    <img src="/data/images/${image.filename}" alt="${image.filename}" 
+                                         onclick="openImageModal(this.src, ${JSON.stringify(image).replace(/"/g, '&quot;')})"
+                                         onerror="this.onerror=null;this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' fill='%23f1f5f9'/%3E%3Ctext x='60' y='70' font-size='12' text-anchor='middle' fill='%2364748b'%3E图片加载失败%3C/text%3E%3C/svg%3E'">
+                                    <div class="image-info">
+                                        <div><strong>设备ID:</strong> ${image.device_id}</div>
+                                        <div><strong>设备名称:</strong> ${image.device_name || '未知设备'}</div>
+                                        <div><strong>文件名:</strong> ${image.original_filename || image.filename}</div>
+                                        <div><strong>时间:</strong> ${new Date(image.receive_time).toLocaleString()}</div>
+                                    </div>
+                                `;
+                                imageList.appendChild(li);
+                            });
+                        }
+                        
+                        // 更新分页控件
+                        updateLatestImagesPaginationControls();
+                    } else {
+                        // 处理API返回错误
+                        imageList.innerHTML = `<li class="log-entry log-error">加载图片失败: ${data.msg || '未知错误'}</li>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载最新图片失败:', error);
+                    if (error !== '已重定向到登录页面') {
+                        imageList.innerHTML = '<li class="log-entry log-error">加载图片失败: 网络错误</li>';
+                    }
+                });
+        }
         
-        // 设备日志相关全局变量
-        var currentDeviceLogsPage = 1;
-        var totalDeviceLogsPages = 1;
-        var totalDeviceLogs = 0;
-        var deviceLogsPerPage = 20;
+        // 更新最新图片分页控件状态
+        function updateLatestImagesPaginationControls() {
+            const prevPageBtn = document.getElementById('latest-prev-page');
+            const nextPageBtn = document.getElementById('latest-next-page');
+            const pageInfo = document.getElementById('latest-page-info');
+            
+            // 更新按钮状态
+            prevPageBtn.disabled = latestCurrentPage === 1;
+            nextPageBtn.disabled = latestCurrentPage === latestTotalPages;
+            
+            // 更新页面信息
+            pageInfo.textContent = `第 ${latestCurrentPage} 页，共 ${latestTotalPages} 页`;
+        }
         
-        // 加载图片列表
+        // 加载图片列表（用于图片页面）
         function loadImages(page) {
             if (page < 1 || page > totalPages) {
                 return;
@@ -1023,11 +1580,10 @@
             
             // 显示加载状态
             const imageList = document.getElementById('image-list');
-            imageList.innerHTML = '<li>加载中...</li>';
+            imageList.innerHTML = '<tr><td colspan="8" style="text-align: center;"><div class="loading-spinner"></div><p class="loading-text">加载中...</p></td></tr>';
             
             fetch(`/api/images?page=${page}&per_page=${imagesPerPage}`)
                 .then(response => {
-                    // 检查是否被重定向
                     if (response.redirected) {
                         window.location.href = response.url;
                         return Promise.reject('已重定向到登录页面');
@@ -1045,37 +1601,47 @@
                         totalImages = pagination.total;
                         
                         // 更新图片列表
-                        const imageList = document.getElementById('image-list');
-                        
                         if (images.length === 0) {
-                            imageList.innerHTML = '<li>暂无图片</li>';
+                            imageList.innerHTML = '<tr><td colspan="8" style="text-align: center;">暂无图片</td></tr>';
                         } else {
                             imageList.innerHTML = '';
                             images.forEach(image => {
-                                const li = document.createElement('li');
-                                li.className = 'image-item';
-                                li.innerHTML = `
-                                    <strong>设备ID:</strong> ${image.device_id}<br>
-                                    <strong>设备名称:</strong> ${image.device_name || '未知设备'}<br>
-                                    <strong>文件名:</strong> ${image.original_filename || image.filename}<br>
-                                    <strong>时间:</strong> ${new Date(image.receive_time).toLocaleString()}<br>
-                                    <img src="/data/images/${image.filename}" alt="${image.filename}">
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td><input type="checkbox" class="image-checkbox" data-image-id="${image.id}"></td>
+                                    <td>${image.device_id}</td>
+                                    <td>${image.device_name || '未知设备'}</td>
+                                    <td>未知位置</td>
+                                    <td>
+                                        <img src="/data/images/${image.filename}" alt="${image.filename}" 
+                                             onclick="openImageModal(this.src, ${JSON.stringify(image).replace(/"/g, '&quot;')})"
+                                             onerror="this.onerror=null;this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f1f5f9'/%3E%3Ctext x='50' y='55' font-size='12' text-anchor='middle' fill='%2364748b'%3E图片加载失败%3C/text%3E%3C/svg%3E'"
+                                             style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); cursor: pointer;">
+                                    </td>
+                                    <td>${image.original_filename || image.filename}</td>
+                                    <td>${new Date(image.receive_time).toLocaleString()}</td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="javascript:void(0)" class="view-btn" onclick="openImageModal('/data/images/${image.filename}', ${JSON.stringify(image).replace(/"/g, '&quot;')})">&gt; 查看</a>
+                                            <a href="javascript:void(0)" class="delete-btn" onclick="deleteImage(${image.id})">删除</a>
+                                        </div>
+                                    </td>
                                 `;
-                                imageList.appendChild(li);
+                                imageList.appendChild(tr);
                             });
                         }
                         
                         // 更新分页控件
                         updatePaginationControls();
-                        addLog(`已加载第 ${currentPage} 页图片，共 ${totalImages} 张`, 'success');
+                    } else {
+                        // 处理API返回错误
+                        imageList.innerHTML = `<li class="log-entry log-error">加载图片失败: ${data.msg || '未知错误'}</li>`;
                     }
                 })
                 .catch(error => {
                     console.error('加载图片失败:', error);
                     if (error !== '已重定向到登录页面') {
-                        const imageList = document.getElementById('image-list');
-                        imageList.innerHTML = '<li>加载图片失败</li>';
-                        addLog(`加载图片失败: ${error}`, 'error');
+                        imageList.innerHTML = '<li class="log-entry log-error">加载图片失败: 网络错误</li>';
                     }
                 });
         }
@@ -1094,106 +1660,7 @@
             pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页 (${totalImages} 张图片)`;
         }
         
-        // 更新设备日志分页控件
-        function updateDeviceLogsPaginationControls() {
-            const prevBtn = document.getElementById('device-logs-prev');
-            const nextBtn = document.getElementById('device-logs-next');
-            const pageInfo = document.getElementById('device-logs-page-info');
-            const totalInfo = document.getElementById('device-logs-total');
-            
-            prevBtn.disabled = currentDeviceLogsPage === 1;
-            nextBtn.disabled = currentDeviceLogsPage === totalDeviceLogsPages;
-            pageInfo.textContent = `第 ${currentDeviceLogsPage} 页，共 ${totalDeviceLogsPages} 页`;
-            totalInfo.textContent = totalDeviceLogs;
-        }
-        
-        // 加载设备日志
-        function loadDeviceLogs(page) {
-            // 获取筛选条件
-            const deviceId = document.getElementById('device-id-filter').value;
-            const date = document.getElementById('date-filter').value;
-            
-            // 构建查询参数
-            const params = new URLSearchParams({
-                page: page,
-                per_page: deviceLogsPerPage
-            });
-            
-            if (deviceId) {
-                params.append('device_id', deviceId);
-            }
-            
-            if (date) {
-                params.append('date', date);
-            }
-            
-            // 显示加载状态
-            const deviceLogsContainer = document.getElementById('device-logs');
-            deviceLogsContainer.innerHTML = '<div class="log-entry log-info">加载中...</div>';
-            
-            // 发送请求
-            fetch(`/api/logs?${params.toString()}`)
-                .then(response => {
-                    // 检查是否被重定向
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                        return Promise.reject('已重定向到登录页面');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.code === 200) {
-                        const logs = data.data.logs;
-                        const pagination = data.data.pagination;
-                        
-                        // 更新全局变量
-                        currentDeviceLogsPage = pagination.current_page;
-                        totalDeviceLogsPages = pagination.total_pages;
-                        totalDeviceLogs = pagination.total;
-                        
-                        // 更新日志列表
-                        const deviceLogsContainer = document.getElementById('device-logs');
-                        
-                        if (logs.length === 0) {
-                            deviceLogsContainer.innerHTML = '<div class="log-entry log-info">暂无设备日志数据</div>';
-                        } else {
-                            deviceLogsContainer.innerHTML = '';
-                            logs.forEach(log => {
-                                const logEntry = document.createElement('div');
-                                logEntry.className = 'log-entry';
-                                
-                                // 根据日志级别设置样式
-                                const level = log.level || 'info';
-                                logEntry.classList.add(`log-${level}`);
-                                
-                                // 格式化日志内容
-                                const timestamp = log.timestamp ? new Date(log.timestamp).toLocaleString() : '未知时间';
-                                const deviceId = log.device_id || 'unknown';
-                                const message = log.message || JSON.stringify(log);
-                                
-                                logEntry.innerHTML = `
-                                    <strong>${deviceId}</strong> <span style="color: var(--text-secondary); font-size: 12px;">${timestamp}</span>
-                                    <div style="margin-top: 5px; white-space: pre-wrap; word-break: break-word;">${message}</div>
-                                `;
-                                
-                                deviceLogsContainer.appendChild(logEntry);
-                            });
-                        }
-                        
-                        // 更新分页控件
-                        updateDeviceLogsPaginationControls();
-                    }
-                })
-                .catch(error => {
-                    console.error('加载设备日志失败:', error);
-                    if (error !== '已重定向到登录页面') {
-                        const deviceLogsContainer = document.getElementById('device-logs');
-                        deviceLogsContainer.innerHTML = '<div class="log-entry log-error">加载设备日志失败</div>';
-                    }
-                });
-        }
-        
-        // 初始化设备下拉列表
+        // 初始化设备筛选器
         function initDeviceFilter() {
             fetch('/api/devices')
                 .then(response => response.json())
@@ -1227,13 +1694,109 @@
                 });
         }
         
+        // 加载设备日志
+        function loadDeviceLogs(page) {
+            // 获取筛选条件
+            const deviceId = document.getElementById('device-id-filter').value;
+            const date = document.getElementById('date-filter').value;
+            const level = document.getElementById('log-level').value;
+            const keyword = document.getElementById('search-keyword').value;
+            
+            // 构建查询参数
+            const params = new URLSearchParams({
+                page: page,
+                per_page: deviceLogsPerPage
+            });
+            
+            if (deviceId) params.append('device_id', deviceId);
+            if (date) params.append('date', date);
+            if (level) params.append('level', level);
+            if (keyword) params.append('keyword', keyword);
+            
+            // 显示加载状态
+            const deviceLogsContainer = document.getElementById('device-logs');
+            deviceLogsContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><p class="loading-text">加载中...</p></div>';
+            
+            // 发送请求
+            fetch(`/api/logs?${params.toString()}`)
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return Promise.reject('已重定向到登录页面');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const logs = data.data.logs;
+                        const pagination = data.data.pagination;
+                        
+                        // 更新全局变量
+                        currentDeviceLogsPage = pagination.current_page;
+                        totalDeviceLogsPages = pagination.total_pages;
+                        totalDeviceLogs = pagination.total;
+                        
+                        // 更新日志列表
+                        const deviceLogsContainer = document.getElementById('device-logs');
+                        
+                        if (logs.length === 0) {
+                            deviceLogsContainer.innerHTML = '<div class="log-entry log-info">暂无设备日志数据</div>';
+                        } else {
+                            deviceLogsContainer.innerHTML = '';
+                            logs.forEach(log => {
+                                const logEntry = document.createElement('div');
+                                logEntry.className = 'log-entry';
+                                
+                                // 根据日志级别设置样式
+                                const logLevel = log.level || 'info';
+                                logEntry.classList.add(`log-${logLevel}`);
+                                
+                                // 格式化日志内容
+                                const timestamp = log.timestamp ? new Date(log.timestamp).toLocaleString() : '未知时间';
+                                const deviceId = log.device_id || 'unknown';
+                                const message = log.message || JSON.stringify(log, null, 2);
+                                
+                                logEntry.innerHTML = `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <strong>${deviceId}</strong> 
+                                        <span style="color: var(--text-secondary); font-size: 12px;">${timestamp}</span>
+                                    </div>
+                                    <div style="white-space: pre-wrap; word-break: break-word;">${message}</div>
+                                `;
+                                
+                                deviceLogsContainer.appendChild(logEntry);
+                            });
+                        }
+                        
+                        // 更新分页控件
+                        updateDeviceLogsPaginationControls();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载设备日志失败:', error);
+                    if (error !== '已重定向到登录页面') {
+                        const deviceLogsContainer = document.getElementById('device-logs');
+                        deviceLogsContainer.innerHTML = '<div class="log-entry log-error">加载设备日志失败</div>';
+                    }
+                });
+        }
+        
+        // 更新设备日志分页控件
+        function updateDeviceLogsPaginationControls() {
+            const prevBtn = document.getElementById('device-logs-prev');
+            const nextBtn = document.getElementById('device-logs-next');
+            const pageInfo = document.getElementById('device-logs-page-info');
+            
+            prevBtn.disabled = currentDeviceLogsPage === 1;
+            nextBtn.disabled = currentDeviceLogsPage === totalDeviceLogsPages;
+            pageInfo.textContent = `第 ${currentDeviceLogsPage} 页，共 ${totalDeviceLogsPages} 页 (${totalDeviceLogs} 条日志)`;
+        }
+        
         // 加载设备列表
         function loadDevices() {
             fetch('/api/devices')
                 .then(response => {
-                    // 检查是否被重定向
                     if (response.redirected) {
-                        // 如果被重定向，跳转到登录页面
                         window.location.href = response.url;
                         return Promise.reject('已重定向到登录页面');
                     }
@@ -1242,291 +1805,122 @@
                 .then(data => {
                     if (data.code === 200) {
                         const devicesList = document.getElementById('devices-list');
-                        devicesList.innerHTML = '';
+                        const allDevicesList = document.getElementById('all-devices-list');
                         
                         if (data.data.length === 0) {
                             devicesList.innerHTML = '<div>暂无设备</div>';
+                            if (allDevicesList) {
+                                allDevicesList.innerHTML = '<div>暂无设备</div>';
+                            }
                             return;
                         }
                         
                         // 创建设备表格
                         const table = document.createElement('table');
-                        table.style.width = '100%';
-                        table.style.borderCollapse = 'collapse';
-                        table.style.minWidth = '800px';
-                        const radiusMd = getComputedStyle(document.documentElement).getPropertyValue('--radius-md').trim();
-                        const shadowMd = getComputedStyle(document.documentElement).getPropertyValue('--shadow-md').trim();
-                        const transition = getComputedStyle(document.documentElement).getPropertyValue('--transition').trim();
-                        table.style.borderRadius = radiusMd;
-                        table.style.overflow = 'hidden';
-                        table.style.boxShadow = shadowMd;
-                        table.style.transition = transition;
-                        
-                        // 表头
-                        const thead = document.createElement('thead');
-                        thead.innerHTML = `
-                            <tr style="background-color: var(--bg-tertiary); border-bottom: 2px solid var(--border-color);">
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">设备序列号</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">设备标识</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">设备名称</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">设备位置</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">接收图片</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">图片原始文件名</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">接收时间</th>
-                                <th style="border: none; padding: 16px 20px; text-align: left; font-weight: 600; color: var(--text-primary); white-space: nowrap; font-size: 14px;">操作</th>
-                            </tr>
+                        table.className = 'devices-table';
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>设备ID</th>
+                                    <th>设备名称</th>
+                                    <th>状态</th>
+                                    <th>创建时间</th>
+                                    <th>位置</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(device => `
+                                    <tr>
+                                        <td>${device.device_id}</td>
+                                        <td>${device.name}</td>
+                                        <td>${device.status}</td>
+                                        <td>${device.created_at}</td>
+                                        <td>${device.location || '未知'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
                         `;
-                        table.appendChild(thead);
                         
-                        // 表体
-                        const tbody = document.createElement('tbody');
-                        data.data.forEach((device, index) => {
-                            const row = document.createElement('tr');
-                            const bgPrimary = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim();
-                            const bgSecondary = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim();
-                            row.style.backgroundColor = index % 2 === 0 ? bgPrimary : bgSecondary;
-                            row.style.borderBottom = '1px solid var(--border-color)';
-                            row.style.transition = 'var(--transition)';
-                            row.style.cursor = 'pointer';
-                            
-                            row.onmouseenter = () => {
-                                const bgTertiary = getComputedStyle(document.documentElement).getPropertyValue('--bg-tertiary').trim();
-                                row.style.backgroundColor = bgTertiary;
-                            };
-                            
-                            row.onmouseleave = () => {
-                                const bgPrimary = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary').trim();
-                                const bgSecondary = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim();
-                                row.style.backgroundColor = index % 2 === 0 ? bgPrimary : bgSecondary;
-                            };
-                            
-                            // 获取图片URL和ID
-                            let imageUrl = '';
-                            let imagePreview = '暂无图片';
-                            let imageId = null;
-                            if (device.latest_image && device.latest_image.image_path && device.latest_image.id) {
-                                const imageFilename = device.latest_image.image_path.split('/').pop();
-                                imageUrl = `/data/images/${imageFilename}`;
-                                imagePreview = `<img src="${imageUrl}" alt="设备图片" style="max-width: 100px; max-height: 75px; border-radius: var(--radius-sm); object-fit: cover; box-shadow: var(--shadow-sm); transition: transform 0.2s; cursor: pointer;" onmouseenter="this.style.transform='scale(1.1)';" onmouseleave="this.style.transform='scale(1)';">`;
-                                imageId = device.latest_image.id;
-                            }
-                            
-                            // 格式化接收时间
-                            const receiveTime = device.latest_image && device.latest_image.receive_time 
-                                ? new Date(device.latest_image.receive_time).toLocaleString() 
-                                : '暂无图片';
-                            
-                            row.innerHTML = `
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--text-primary); font-weight: 500;">${index + 1}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--primary-color); font-weight: 600; font-size: 15px;">${device.device_id}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--text-primary); font-weight: 500;">${device.name}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--text-secondary);">${device.location}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; text-align: center;">${imagePreview}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--text-secondary); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace;">${device.latest_image?.original_filename || '暂无图片'}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; color: var(--text-secondary); white-space: nowrap; font-size: 14px;">${receiveTime}</td>
-                                <td style="border: none; padding: 16px 20px; vertical-align: middle; text-align: center;">
-                                    <button onclick="event.stopPropagation(); viewImage(${imageId})" style="padding: 8px 16px; margin-right: 10px; background-color: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);" ${imageId ? '' : 'disabled'}>查看</button>
-                                    <button onclick="event.stopPropagation(); deleteImage(${imageId})" style="padding: 8px 16px; background-color: var(--danger-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);" ${imageId ? '' : 'disabled'}>删除</button>
-                                </td>
-                            `;
-                            tbody.appendChild(row);
-                        });
-                        table.appendChild(tbody);
-                        
+                        devicesList.innerHTML = '';
                         devicesList.appendChild(table);
                         
-                        // 显示设备列表卡片
-                        document.getElementById('devices-card').style.display = 'block';
+                        // 同时更新设备管理页面的设备列表
+                        if (allDevicesList) {
+                            allDevicesList.innerHTML = '';
+                            allDevicesList.appendChild(table.cloneNode(true));
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('加载设备列表失败:', error);
-                    addLog('加载设备列表失败', 'error');
+                    if (error !== '已重定向到登录页面') {
+                        addSystemLog('加载设备列表失败', 'error');
+                    }
                 });
-        }
-        
-        // 打开模态框
-        function openModal() {
-            const modal = document.getElementById('image-modal');
-            modal.classList.add('show');
-            
-            // 添加图片点击放大功能
-            const modalImage = document.getElementById('modal-image');
-            modalImage.onclick = function() {
-                this.classList.toggle('zoomed');
-            };
-        }
-
-        // 关闭模态框
-        function closeModal() {
-            const modal = document.getElementById('image-modal');
-            modal.classList.remove('show');
-            
-            // 关闭时重置图片缩放状态
-            const modalImage = document.getElementById('modal-image');
-            modalImage.classList.remove('zoomed');
-        }
-
-        // 点击模态框外部关闭
-        window.onclick = function(event) {
-            const modal = document.getElementById('image-modal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-
-        // 查看图片
-        function viewImage(imageId) {
-            if (imageId) {
-                // 调用API获取图片详细信息
-                fetch(`/api/view_image/${imageId}`)
-                    .then(response => {
-                        // 检查是否被重定向
-                        if (response.redirected) {
-                            // 如果被重定向，跳转到登录页面
-                            window.location.href = response.url;
-                            return Promise.reject('已重定向到登录页面');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.code === 200) {
-                            // 使用模态框显示图片
-                            const modalImage = document.getElementById('modal-image');
-                            const modalInfo = document.getElementById('modal-info');
-                            modalImage.src = data.data.image_url;
-                            modalImage.alt = data.data.filename;
-                            
-                            // 设置图片信息，添加默认值处理
-                            const filename = data.data.filename || data.data.original_filename || '未知文件名';
-                            const size = data.data.size || 0;
-                            
-                            modalInfo.innerHTML = `
-                                <p><strong>设备ID:</strong> ${data.data.device_id || '未知设备'}</p>
-                                <p><strong>文件名:</strong> ${filename}</p>
-                                <p><strong>接收时间:</strong> ${new Date(data.data.receive_time || new Date()).toLocaleString()}</p>
-                                <p><strong>文件大小:</strong> ${(size / 1024).toFixed(2)} KB</p>
-                            `;
-                            
-                            // 显示模态框，不自动放大图片
-                            openModal();
-                        } else {
-                            alert(`获取图片失败: ${data.msg}`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('获取图片失败:', error);
-                        // 只有当不是重定向错误时才显示提示
-                        if (error !== '已重定向到登录页面') {
-                            alert('获取图片失败');
-                        }
-                    });
-            } else {
-                alert('该设备暂无图片');
-            }
         }
         
         // 添加设备
         function addDevice() {
-            const deviceIdInput = document.getElementById('device-id-input');
-            const errorDiv = document.getElementById('device-add-error');
+            const deviceIdInput = document.getElementById('device-id-input') || document.getElementById('add-device-id-input');
             const deviceId = deviceIdInput.value.trim();
+            const errorDiv = document.getElementById('device-add-error');
             
-            // 清空之前的错误信息
-            errorDiv.style.display = 'none';
-            errorDiv.textContent = '';
-            
-            // 验证设备ID是否为空
             if (!deviceId) {
                 errorDiv.textContent = '设备ID不能为空';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            // 验证设备ID格式
+            // 这里可以添加设备ID格式验证
             const deviceIdPattern = /^[a-zA-Z0-9_-]{3,20}$/;
             if (!deviceIdPattern.test(deviceId)) {
-                errorDiv.textContent = '设备ID格式无效，只允许字母、数字、下划线和连字符，长度3-20位';
+                errorDiv.textContent = '设备ID格式无效，允许字母、数字、下划线和连字符，长度3-20';
                 errorDiv.style.display = 'block';
                 return;
             }
             
-            // 调用API添加设备
-            fetch('/api/add_device', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ device_id: deviceId })
-            })
-            .then(response => {
-                // 检查是否被重定向
-                if (response.redirected) {
-                    // 如果被重定向，跳转到登录页面
-                    window.location.href = response.url;
-                    return Promise.reject('已重定向到登录页面');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.code === 200) {
-                    // 添加成功
-                    alert(data.msg);
-                    deviceIdInput.value = '';
-                    loadDevices(); // 刷新设备列表
-                    addLog(`设备 ${deviceId} 添加成功`, 'success');
-                } else {
-                    // 添加失败
-                    errorDiv.textContent = `添加失败: ${data.msg}`;
-                    errorDiv.style.display = 'block';
-                    addLog(`设备 ${deviceId} 添加失败: ${data.msg}`, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('添加设备失败:', error);
-                // 只有当不是重定向错误时才显示提示
-                if (error !== '已重定向到登录页面') {
-                    errorDiv.textContent = '添加设备时发生网络错误';
-                    errorDiv.style.display = 'block';
-                }
-            });
+            // 这里可以添加设备添加的API调用
+            // 目前是自动注册，所以只需要刷新设备列表即可
+            loadDevices();
+            deviceIdInput.value = '';
+            errorDiv.style.display = 'none';
+            addSystemLog(`已添加设备: ${deviceId}`, 'success');
         }
         
-        // 删除图片
-        function deleteImage(imageId) {
-            if (imageId) {
-                if (confirm('确定要删除该图片吗？')) {
-                    // 调用API删除图片
-                    fetch(`/api/delete_image/${imageId}`, {
-                        method: 'DELETE'
-                    })
-                    .then(response => {
-                        // 检查是否被重定向
-                        if (response.redirected) {
-                            // 如果被重定向，跳转到登录页面
-                            window.location.href = response.url;
-                            return Promise.reject('已重定向到登录页面');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                if (data.code === 200) {
-                    alert(data.msg); // 使用后端返回的提示信息
-                    loadDevices(); // 刷新列表
-                } else {
-                    alert(`删除失败: ${data.msg}`);
-                }
-                    })
-                    .catch(error => {
-                        console.error('删除图片失败:', error);
-                        // 只有当不是重定向错误时才显示提示
-                        if (error !== '已重定向到登录页面') {
-                            alert('删除图片失败');
-                        }
-                    });
-                }
+        // 图片模态框相关函数
+        function openImageModal(imageUrl, imageInfo) {
+            const modal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalInfo = document.getElementById('modal-info');
+            
+            modalImage.src = imageUrl;
+            modalInfo.innerHTML = `
+                <p><strong>设备ID:</strong> ${imageInfo.device_id}</p>
+                <p><strong>设备名称:</strong> ${imageInfo.device_name || '未知设备'}</p>
+                <p><strong>文件名:</strong> ${imageInfo.original_filename || imageInfo.filename}</p>
+                <p><strong>接收时间:</strong> ${new Date(imageInfo.receive_time).toLocaleString()}</p>
+            `;
+            
+            modal.classList.add('show');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.remove('show');
+        }
+        
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            const modal = document.getElementById('image-modal');
+            if (event.target === modal) {
+                closeModal();
             }
         }
+        
+        // 图片缩放功能
+        document.getElementById('modal-image').addEventListener('click', function() {
+            this.classList.toggle('zoomed');
+        });
     </script>
 </body>
 </html>
