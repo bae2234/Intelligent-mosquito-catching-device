@@ -791,18 +791,10 @@
             display: block;
             margin: 20px auto;
             cursor: zoom-in;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-content img.zoomed {
-            cursor: zoom-out;
-            transform: scale(2.2);
+            transition: transform 0.2s ease;
             transform-origin: center;
-            max-width: 300%;
-            max-height: 95vh;
             position: relative;
             z-index: 1001;
-            margin: 20px auto;
         }
         
         .modal-close {
@@ -1041,32 +1033,32 @@
                                         <div class="sensor-value" id="humidity">--</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">舵机1</div>
-                                        <div class="sensor-value" id="duoj1">--</div>
+                                        <div class="sensor-label">吸蚊百叶窗</div>
+                                        <div class="sensor-value" id="duoj1">关</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">舵机2</div>
-                                        <div class="sensor-value" id="duoj2">--</div>
+                                        <div class="sensor-label">电机</div>
+                                        <div class="sensor-value" id="duoj2">关</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">舵机3</div>
-                                        <div class="sensor-value" id="duoj3">--</div>
+                                        <div class="sensor-label">加热百叶窗</div>
+                                        <div class="sensor-value" id="duoj3">关</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">舵机4</div>
-                                        <div class="sensor-value" id="duoj4">--</div>
+                                        <div class="sensor-label">清蚊舵机</div>
+                                        <div class="sensor-value" id="duoj4">关</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">风机1</div>
-                                        <div class="sensor-value" id="feng1">--</div>
+                                        <div class="sensor-label">吸蚊风机</div>
+                                        <div class="sensor-value" id="feng1">关</div>
                                     </div>
                                     <div class="sensor-item">
-                                        <div class="sensor-label">风机2</div>
-                                        <div class="sensor-value" id="feng2">--</div>
+                                        <div class="sensor-label">加热风机</div>
+                                        <div class="sensor-value" id="feng2">关</div>
                                     </div>
                                     <div class="sensor-item">
                                         <div class="sensor-label">加热器</div>
-                                        <div class="sensor-value" id="jia">--</div>
+                                        <div class="sensor-value" id="jia">关</div>
                                     </div>
                                     <div class="sensor-item">
                                         <div class="sensor-label">时间</div>
@@ -1403,13 +1395,23 @@
             document.getElementById('temperature-inside').textContent = data.temperature_inside || '--';
             document.getElementById('temperature-outside').textContent = data.temperature_outside || '--';
             document.getElementById('humidity').textContent = data.humidity || '--';
-            document.getElementById('duoj1').textContent = data.duoj1 || '--';
-            document.getElementById('duoj2').textContent = data.duoj2 || '--';
-            document.getElementById('duoj3').textContent = data.duoj3 || '--';
-            document.getElementById('duoj4').textContent = data.duoj4 || '--';
-            document.getElementById('feng1').textContent = data.feng1 || '--';
-            document.getElementById('feng2').textContent = data.feng2 || '--';
-            document.getElementById('jia').textContent = data.jia || '--';
+            
+            // 将数字1转换为"开"，将0或--转换为"关"
+            function formatSwitch(value) {
+                if (value === 1 || value === "1") {
+                    return "开";
+                } else {
+                    return "关";
+                }
+            }
+            
+            document.getElementById('duoj1').textContent = formatSwitch(data.duoj1);
+            document.getElementById('duoj2').textContent = formatSwitch(data.duoj2);
+            document.getElementById('duoj3').textContent = formatSwitch(data.duoj3);
+            document.getElementById('duoj4').textContent = formatSwitch(data.duoj4);
+            document.getElementById('feng1').textContent = formatSwitch(data.feng1);
+            document.getElementById('feng2').textContent = formatSwitch(data.feng2);
+            document.getElementById('jia').textContent = formatSwitch(data.jia);
             document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString() || '--';
         }
         
@@ -1923,9 +1925,85 @@
             }
         }
         
-        // 图片缩放功能
-        document.getElementById('modal-image').addEventListener('click', function() {
-            this.classList.toggle('zoomed');
+        // 图片缩放和拖动功能
+        const modalImage = document.getElementById('modal-image');
+        let scale = 1;
+        let isDragging = false;
+        let startX, startY;
+        let translateX = 0, translateY = 0;
+        
+        // 滚动放大功能
+        modalImage.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            
+            // 计算缩放中心点
+            const rect = this.getBoundingClientRect();
+            const centerX = e.clientX - rect.left;
+            const centerY = e.clientY - rect.top;
+            
+            // 根据滚轮方向调整缩放比例
+            const zoomSpeed = 0.1;
+            const newScale = e.deltaY > 0 ? scale - zoomSpeed : scale + zoomSpeed;
+            
+            // 限制缩放范围
+            scale = Math.max(0.5, Math.min(5, newScale));
+            
+            // 更新位置以保持缩放中心不变
+            translateX += centerX * (scale - newScale) / scale;
+            translateY += centerY * (scale - newScale) / scale;
+            
+            updateImageTransform();
+        });
+        
+        // 拖动功能
+        modalImage.addEventListener('mousedown', function(e) {
+            if (scale === 1) return; // 只有在缩放后才能拖动
+            
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            this.style.cursor = 'grabbing';
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            
+            e.preventDefault();
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            
+            updateImageTransform();
+        });
+        
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            modalImage.style.cursor = 'grab';
+        });
+        
+        // 更新图片变换
+        function updateImageTransform() {
+            modalImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            modalImage.style.cursor = scale === 1 ? 'zoom-in' : 'grab';
+        }
+        
+        // 重置图片变换
+        function resetImageTransform() {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+        }
+        
+        // 监听模态框关闭事件，重置图片状态
+        document.getElementById('image-modal').addEventListener('click', function(e) {
+            if (e.target.id === 'image-modal') {
+                resetImageTransform();
+            }
+        });
+        
+        // 监听关闭按钮点击事件
+        document.querySelector('.modal-close').addEventListener('click', function() {
+            resetImageTransform();
         });
     </script>
 </body>
