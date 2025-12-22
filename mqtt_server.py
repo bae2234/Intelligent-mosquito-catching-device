@@ -10,7 +10,7 @@ class MQTTServer:
     def __init__(self):
         # 配置
         self.MQTT_BROKER = "111.230.253.226"  # 服务器的外网 IP 地址
-        self.MQTT_PORT = 1883
+        self.MQTT_PORT = 1883  
         self.SENSOR_TOPIC = "control/sensor_data/+"
         self.COMMAND_TOPIC = "control/command/+"
         self.DB_PATH = "./iot.db"
@@ -142,40 +142,67 @@ class MQTTServer:
         try:
             # 解析消息
             topic = msg.topic
+            print(f"📩 收到消息 - 主题: {topic}")
+            print(f"📋 消息内容: {msg.payload.decode('utf-8')}")
+            
             payload = json.loads(msg.payload.decode('utf-8'))
             
             # 提取设备ID
             topic_parts = topic.split('/')
-            device_id = topic_parts[2]
-            
-            print(f"📩 收到消息 - 主题: {topic}, 设备ID: {device_id}")
+            if len(topic_parts) >= 3:
+                device_id = topic_parts[2]
+                print(f"🔌 设备ID: {device_id}")
+            else:
+                device_id = "unknown"
+                print(f"❓ 无法从主题中提取设备ID: {topic}")
             
             # 自动注册设备
+            print(f"🔧 尝试自动注册设备: {device_id}")
             self.auto_register_device(device_id)
             
             # 根据主题类型处理消息
             if topic.startswith("control/sensor_data/"):
                 # 处理传感器数据
+                print(f"📊 处理传感器数据 - 设备ID: {device_id}")
                 self.save_sensor_data(device_id, payload)
                 # 发送确认消息
+                print(f"✅ 保存传感器数据成功，发送确认消息")
                 self.send_confirm(device_id, payload)
             elif topic.startswith("control/command/"):
                 # 处理控制命令
+                print(f"⚙️  处理控制命令 - 设备ID: {device_id}")
                 self.process_command(device_id, payload)
+            else:
+                print(f"❓ 未知主题类型: {topic}")
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON解析错误: {e}")
+            print(f"📋 原始消息: {msg.payload.decode('utf-8')}")
         except Exception as e:
-            print(f"❌ 处理消息时出错: {e}")
+            print(f"❌ 处理消息时出错: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
     
     def push_data_to_frontend(self, data):
         """将数据推送到前端"""
         try:
+            print(f"\n📤 开始推送数据到前端:")
+            print(f"📋 推送数据内容: {json.dumps(data, indent=2, ensure_ascii=False)}")
+            
             # 调用app.py的push_sensor_data API端点
+            print("🔌 调用 http://localhost:5000/push_sensor_data 端点")
             response = requests.post('http://localhost:5000/push_sensor_data', json=data, timeout=5)
+            
+            print(f"📩 收到响应: 状态码 {response.status_code}")
+            print(f"📋 响应内容: {response.text}")
+            
             if response.status_code == 200:
-                print(f"📤 已推送传感器数据到前端")
+                print(f"✅ 已成功推送传感器数据到前端")
             else:
                 print(f"❌ 推送数据到前端失败: {response.status_code}")
         except Exception as e:
-            print(f"❌ 推送数据到前端时出错: {e}")
+            print(f"❌ 推送数据到前端时出错: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
     
     def save_sensor_data(self, device_id, data):
         """保存传感器数据到数据库"""

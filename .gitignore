@@ -17,3 +17,6 @@ check_db.py
 test_websocket.py
 update_db.py
 app.log
+mqtt_receiver.log
+mqtt_server.log
+mqtt_server_debug.log
