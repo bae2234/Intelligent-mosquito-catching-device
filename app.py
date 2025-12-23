@@ -468,18 +468,19 @@ def get_devices():
         device_id, name, status, created_at = device
         location = "未知位置"  # 设备表中没有location字段，设置默认值
         
-        # 获取该设备的所有图片
+        # 获取该设备的最新图片（只取第一张，即最新的）
         device_images = images_by_device.get(device_id, [])
+        latest_image = device_images[0] if device_images else None
         
-        for image in device_images:
-            device_list.append({
-                'device_id': device_id,
-                'name': name,
-                'status': status,
-                'location': location,
-                'created_at': created_at,
-                'latest_image': image
-            })
+        # 为每个设备创建一个条目，无论是否有图片
+        device_list.append({
+            'device_id': device_id,
+            'name': name,
+            'status': status,
+            'location': location,
+            'created_at': created_at,
+            'latest_image': latest_image
+        })
     
     conn.close()
     
@@ -959,6 +960,107 @@ def get_device_logs():
             'code': 500,
             'msg': f'Error getting device logs: {str(e)}'
         })
+
+# 添加MQTT客户端用于发布命令
+import paho.mqtt.client as mqtt
+
+# 初始化MQTT客户端用于发布命令
+mqtt_client = mqtt.Client()
+mqtt_client.connect("localhost", 1883, 60)
+mqtt_client.loop_start()
+
+# 发送MQTT命令API
+@app.route('/api/send_command', methods=['POST'])
+@login_required
+def send_command():
+    """发送MQTT控制命令"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'code': 400, 'msg': 'No data provided'}), 400
+        
+        device_id = data.get('device_id')
+        command_data = data.get('command_data')
+        
+        if not device_id or not command_data:
+            return jsonify({'code': 400, 'msg': 'Device ID and command data are required'}), 400
+        
+        # 检查设备是否存在
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM devices WHERE device_id = ?", (device_id,))
+        device = cursor.fetchone()
+        conn.close()
+        
+        if not device:
+            return jsonify({'code': 404, 'msg': 'Device not found'}), 404
+        
+        # 发布MQTT命令到对应的主题
+        topic = f"control/command/{device_id}"
+        mqtt_client.publish(topic, json.dumps(command_data), qos=1)
+        
+        return jsonify({
+            'code': 200,
+            'msg': 'Command sent successfully',
+            'topic': topic,
+            'command': command_data
+        })
+    except Exception as e:
+        return jsonify({
+            'code': 500,
+            'msg': f'Failed to send command: {str(e)}'
+        }), 500
+
+# 删除设备API
+@app.route('/api/delete_device/<string:device_id>', methods=['DELETE'])
+@login_required
+def delete_device(device_id):
+    """删除设备"""
+    try:
+        # 只有管理员可以删除设备
+        if session['role'] != 'admin':
+            return jsonify({'code': 403, 'msg': '无权限删除设备'}), 403
+        
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        # 检查设备是否存在
+        cursor.execute("SELECT * FROM devices WHERE device_id = ?", (device_id,))
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({'code': 404, 'msg': '设备不存在'}), 404
+        
+        try:
+            # 删除设备相关的所有图片记录
+            cursor.execute("DELETE FROM images WHERE device_id = ?", (device_id,))
+            
+            # 删除设备相关的用户记录
+            cursor.execute("DELETE FROM users WHERE device_id = ?", (device_id,))
+            
+            # 删除设备记录
+            cursor.execute("DELETE FROM devices WHERE device_id = ?", (device_id,))
+            
+            # 提交事务
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'code': 200,
+                'msg': '设备删除成功'
+            })
+        except Exception as e:
+            # 回滚事务
+            conn.rollback()
+            conn.close()
+            return jsonify({
+                'code': 500,
+                'msg': f'删除设备时出错: {str(e)}'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'code': 500,
+            'msg': f'删除设备失败: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=False, allow_unsafe_werkzeug=True)
