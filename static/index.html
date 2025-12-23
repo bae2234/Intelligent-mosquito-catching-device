@@ -293,39 +293,135 @@
         /* 传感器数据样式 */
         .sensor-data {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 调整传感器数据网格 */
-            gap: 20px; /* 调整传感器数据间距 */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
         }
         
         .sensor-item {
-            background-color: var(--bg-secondary);
-            padding: 24px;
-            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            padding: 28px 20px;
+            border-radius: var(--radius-lg);
             text-align: center;
             border: 1px solid var(--border-color);
-            transition: var(--transition);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sensor-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
         
         .sensor-item:hover {
-            background-color: var(--bg-tertiary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+        
+        .sensor-item:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .sensor-item.device-info {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+        
+        .sensor-item.device-info .sensor-label,
+        .sensor-item.device-info .sensor-value {
+            color: white;
+        }
+        
+        .sensor-item.device-info:hover {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, var(--secondary-hover) 100%);
+        }
+        
+        /* 传感器类型特殊样式 */
+        .sensor-item.temperature {
+            border-top-color: #ff6b6b;
+        }
+        
+        .sensor-item.humidity {
+            border-top-color: #4ecdc4;
+        }
+        
+        .sensor-item.actuator {
+            border-top-color: #45b7d1;
+        }
+        
+        .sensor-item.fan {
+            border-top-color: #96ceb4;
+        }
+        
+        .sensor-item.heater {
+            border-top-color: #ffeaa7;
+        }
+        
+        .sensor-item.time {
+            border-top-color: #a29bfe;
         }
         
         .sensor-label {
-            font-size: 0.875em;
+            font-size: 0.85em;
             color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-weight: 500;
+            margin-bottom: 10px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            z-index: 1;
         }
         
         .sensor-value {
-            font-size: 2em;
+            font-size: 2.2em;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
+            z-index: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        
+        .sensor-unit {
+            font-size: 0.5em;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .sensor-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sensor-item:hover .sensor-icon {
+            opacity: 0.2;
+        }
+        
+        /* 状态样式 */
+        .sensor-value:contains("开") {
+            color: var(--secondary-color) !important;
+        }
+        
+        .sensor-value:contains("关") {
+            color: var(--text-tertiary) !important;
         }
         
         /* 最新上传图片样式 */
@@ -1011,73 +1107,81 @@
                             🔄 刷新最新数据
                         </button>
                         
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
-                            <!-- 实时传感器数据 -->
-                            <div class="card">
-                                <h2>实时传感器数据</h2>
-                                <div class="sensor-data" id="sensor-data">
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">设备ID</div>
-                                        <div class="sensor-value" id="device-id">--</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">内部温度</div>
-                                        <div class="sensor-value" id="temperature-inside">--</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">外部温度</div>
-                                        <div class="sensor-value" id="temperature-outside">--</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">湿度</div>
-                                        <div class="sensor-value" id="humidity">--</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">吸蚊百叶窗</div>
-                                        <div class="sensor-value" id="duoj1">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">电机</div>
-                                        <div class="sensor-value" id="duoj2">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">加热百叶窗</div>
-                                        <div class="sensor-value" id="duoj3">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">清蚊舵机</div>
-                                        <div class="sensor-value" id="duoj4">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">吸蚊风机</div>
-                                        <div class="sensor-value" id="feng1">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">加热风机</div>
-                                        <div class="sensor-value" id="feng2">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">加热器</div>
-                                        <div class="sensor-value" id="jia">关</div>
-                                    </div>
-                                    <div class="sensor-item">
-                                        <div class="sensor-label">时间</div>
-                                        <div class="sensor-value" id="timestamp">--</div>
-                                    </div>
+                        <!-- 实时传感器数据 -->
+                        <div class="card">
+                            <h2>实时传感器数据</h2>
+                            <div class="sensor-data" id="sensor-data">
+                                <!-- 设备基本信息 -->
+                                <div class="sensor-item device-info">
+                                    <div class="sensor-label">设备ID</div>
+                                    <div class="sensor-value" id="device-id">--</div>
+                                    <div class="sensor-icon">🆔</div>
                                 </div>
-                            </div>
-                            
-                            <!-- 最新上传图片 -->
-                            <div class="card">
-                                <h2>最新上传图片</h2>
-                                <ul class="image-list" id="latest-image-list">
-                                    <li>暂无图片</li>
-                                </ul>
-                                <!-- 分页控件 -->
-                                <div class="pagination" id="latest-images-pagination">
-                                    <button id="latest-prev-page" onclick="loadLatestImages(latestCurrentPage - 1)" disabled>上一页</button>
-                                    <span id="latest-page-info">第 1 页，共 1 页</span>
-                                    <button id="latest-next-page" onclick="loadLatestImages(latestCurrentPage + 1)" disabled>下一页</button>
+                                
+                                <!-- 温度湿度区域 -->
+                                <div class="sensor-item temperature">
+                                    <div class="sensor-label">内部温度</div>
+                                    <div class="sensor-value" id="temperature-inside">--</div>
+                                    <div class="sensor-unit">°C</div>
+                                    <div class="sensor-icon">🌡️</div>
+                                </div>
+                                <div class="sensor-item temperature">
+                                    <div class="sensor-label">外部温度</div>
+                                    <div class="sensor-value" id="temperature-outside">--</div>
+                                    <div class="sensor-unit">°C</div>
+                                    <div class="sensor-icon">☀️</div>
+                                </div>
+                                <div class="sensor-item humidity">
+                                    <div class="sensor-label">湿度</div>
+                                    <div class="sensor-value" id="humidity">--</div>
+                                    <div class="sensor-unit">%</div>
+                                    <div class="sensor-icon">💧</div>
+                                </div>
+                                
+                                <!-- 舵机状态区域 -->
+                                <div class="sensor-item actuator">
+                                    <div class="sensor-label">吸蚊百叶窗</div>
+                                    <div class="sensor-value" id="duoj1">关</div>
+                                    <div class="sensor-icon">📱</div>
+                                </div>
+                                <div class="sensor-item actuator">
+                                    <div class="sensor-label">电机</div>
+                                    <div class="sensor-value" id="duoj2">关</div>
+                                    <div class="sensor-icon">⚙️</div>
+                                </div>
+                                <div class="sensor-item actuator">
+                                    <div class="sensor-label">加热百叶窗</div>
+                                    <div class="sensor-value" id="duoj3">关</div>
+                                    <div class="sensor-icon">🔥</div>
+                                </div>
+                                <div class="sensor-item actuator">
+                                    <div class="sensor-label">清蚊舵机</div>
+                                    <div class="sensor-value" id="duoj4">关</div>
+                                    <div class="sensor-icon">🧹</div>
+                                </div>
+                                
+                                <!-- 风机加热器区域 -->
+                                <div class="sensor-item fan">
+                                    <div class="sensor-label">吸蚊风机</div>
+                                    <div class="sensor-value" id="feng1">关</div>
+                                    <div class="sensor-icon">💨</div>
+                                </div>
+                                <div class="sensor-item fan">
+                                    <div class="sensor-label">加热风机</div>
+                                    <div class="sensor-value" id="feng2">关</div>
+                                    <div class="sensor-icon">🌬️</div>
+                                </div>
+                                <div class="sensor-item heater">
+                                    <div class="sensor-label">加热器</div>
+                                    <div class="sensor-value" id="jia">关</div>
+                                    <div class="sensor-icon">🌡️🔥</div>
+                                </div>
+                                
+                                <!-- 时间信息 -->
+                                <div class="sensor-item time">
+                                    <div class="sensor-label">时间</div>
+                                    <div class="sensor-value" id="timestamp">--</div>
+                                    <div class="sensor-icon">⏰</div>
                                 </div>
                             </div>
                         </div>
@@ -1250,11 +1354,7 @@
         var totalImages = 0;
         var imagesPerPage = 8;
         
-        // 最新图片分页相关变量
-        var latestCurrentPage = 1;
-        var latestTotalPages = 1;
-        var latestTotalImages = 0;
-        var latestImagesPerPage = 5;
+
         
         // 删除图片函数
         function deleteImage(imageId) {
@@ -1300,7 +1400,6 @@
         window.onload = function() {
             getUserInfo();
             refreshData();
-            loadLatestImages(1);
             initDeviceFilter();
             loadDeviceLogs(1);
         };
@@ -1381,10 +1480,8 @@
         // 接收新图片
         socket.on('new_image', (data) => {
             addSystemLog(`收到新图片: ${data.filename}`, 'success');
-            // 如果当前在仪表盘或图片页面，刷新图片列表
-            if (currentPageName === 'dashboard') {
-                loadLatestImages(1);
-            } else if (currentPageName === 'images' && currentPage === 1) {
+            // 如果当前在图片页面，刷新图片列表
+            if (currentPageName === 'images' && currentPage === 1) {
                 loadImages(1);
             }
         });

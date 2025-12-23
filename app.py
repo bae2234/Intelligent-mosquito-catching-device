@@ -46,6 +46,17 @@ CREATE TABLE IF NOT EXISTS devices (
 )
 ''')
 
+# 创建图片表
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id TEXT NOT NULL,
+    image_path TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
+    receive_time TEXT DEFAULT CURRENT_TIMESTAMP
+)
+''')
+
 # 插入管理员账号
 cursor.execute("SELECT * FROM users WHERE username='admin'")
 if not cursor.fetchone():
