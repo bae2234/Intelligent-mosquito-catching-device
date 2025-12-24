@@ -131,7 +131,7 @@ def login():
                 <html lang="zh-CN">
                 <head>
                     <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
                     <title>登录失败</title>
                     <style>
                         body {
@@ -204,7 +204,7 @@ def login():
         <html lang="zh-CN">
         <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
             <title>登录 - 智能捕蚊识别系统</title>
             <style>
                 body {

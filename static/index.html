@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>智能捕蚊识别系统</title>
     <style>
         * {
@@ -68,15 +68,15 @@
             
             /* 布局变量 */
             --sidebar-width: 260px;
-            --header-height: 64px;
-            --content-padding: 24px;
+            --header-height: 56px;
+            --content-padding: 16px;
             
             /* 间距变量 */
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
+            --spacing-xs: 3px;
+            --spacing-sm: 6px;
+            --spacing-md: 12px;
+            --spacing-lg: 18px;
+            --spacing-xl: 24px;
         }
         
         body {
@@ -241,7 +241,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 32px;
+            padding: 0 16px;
             position: sticky;
             top: 0;
             z-index: 50;
@@ -264,7 +264,7 @@
             padding: 8px 12px;
             border-radius: var(--radius-md);
             transition: var(--transition);
-            display: none;
+            display: none !important;
         }
         
         .menu-toggle:hover {
@@ -274,7 +274,7 @@
         }
         
         .page-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: -0.5px;
@@ -375,7 +375,7 @@
         /* 内容区域 */
         .content {
             flex: 1;
-            padding: 32px;
+            padding: 16px;
             overflow-y: auto;
             background: var(--bg-gradient);
         }
@@ -391,12 +391,12 @@
             background: var(--bg-primary);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            padding: 32px;
+            padding: 12px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         }
         
@@ -424,10 +424,10 @@
         
         .card h2 {
             color: var(--text-primary);
-            margin-bottom: 32px;
-            font-size: 24px;
+            margin-bottom: 12px;
+            font-size: 18px;
             font-weight: 700;
-            padding-bottom: 16px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
             position: relative;
             letter-spacing: -0.5px;
@@ -453,20 +453,20 @@
         .refresh-btn {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 14px 32px;
+            gap: 8px;
+            padding: 10px 24px;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
             color: white;
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
             position: relative;
             overflow: hidden;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         
         .refresh-btn::before {
@@ -493,14 +493,14 @@
         .search-btn {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 14px 32px;
+            gap: 6px;
+            padding: 10px 24px;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
             color: white;
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
@@ -537,7 +537,7 @@
         
         .sensor-item {
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            padding: 28px 20px;
+            padding: 12px 8px;
             border-radius: var(--radius-lg);
             text-align: center;
             border: 1px solid var(--border-color);
@@ -626,14 +626,14 @@
         }
         
         .sensor-value {
-            font-size: 2.2em;
+            font-size: 1.5em;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 1px;
             z-index: 1;
             display: flex;
             align-items: baseline;
-            gap: 6px;
+            gap: 3px;
         }
         
         .sensor-unit {
@@ -688,7 +688,7 @@
             flex-direction: row;
             align-items: flex-start;
             background-color: var(--bg-secondary);
-            padding: 16px;
+            padding: 10px;
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             transition: var(--transition);
@@ -700,14 +700,14 @@
         }
         
         .image-item img {
-            width: 120px;
-            height: 120px;
+            width: 80px;
+            height: 80px;
             object-fit: cover;
             border-radius: var(--radius-sm);
             box-shadow: var(--shadow-sm);
             cursor: pointer;
             transition: var(--transition);
-            margin-right: 20px;
+            margin-right: 12px;
             flex-shrink: 0;
         }
         
@@ -747,7 +747,7 @@
         .image-table td,
         .devices-table th,
         .devices-table td {
-            padding: 16px 20px;
+            padding: 8px 12px;
             border-bottom: 1px solid var(--border-color);
         }
         
@@ -790,8 +790,8 @@
         
         /* 图片单元格样式 */
         .image-table img {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
             object-fit: cover;
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-md);
@@ -1349,93 +1349,7 @@
             line-height: 1.8;
         }
         
-        /* 响应式设计优化 - 保持与桌面端一致 */
-        @media (max-width: 1024px) {
-            :root {
-                --sidebar-width: 260px;
-            }
-            
-            .content {
-                padding: 24px;
-            }
-            
-            .top-header {
-                padding: 0 24px;
-            }
-            
-            .filter-controls {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .content {
-                padding: 24px;
-            }
-            
-            .top-header {
-                padding: 0 24px;
-            }
-            
-            .page-title {
-                font-size: 20px;
-            }
-            
-            .header-right {
-                gap: 16px;
-            }
-            
-            .user-info {
-                gap: 12px;
-            }
-            
-            .welcome-text {
-                display: none;
-            }
-            
-            .card {
-                padding: 24px;
-            }
-            
-            .header-right {
-                gap: 12px;
-            }
-            
-            .status-indicator {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .card {
-                padding: 16px;
-            }
-            
-            .pagination {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .pagination button {
-                width: 100%;
-            }
-        }
+
         
         .search-btn {
             display: inline-flex;
@@ -1638,85 +1552,7 @@
             font-size: 16px;
         }
         
-        /* 响应式设计 - 保持与桌面端一致 */
-        @media (max-width: 1024px) {
-            :root {
-                --sidebar-width: 250px;
-            }
-            
-            .content {
-                padding: 24px;
-            }
-            
-            .top-header {
-                padding: 0 24px;
-            }
-            
-            .filter-controls {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-            
-            .content {
-                padding: 24px;
-            }
-            
-            .top-header {
-                padding: 0 24px;
-            }
-            
-            .page-title {
-                font-size: 20px;
-            }
-            
-            .header-right {
-                gap: 16px;
-            }
-            
-            .user-info {
-                gap: 12px;
-            }
-            
-            .welcome-text {
-                display: none;
-            }
-            
-            .filter-controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .card {
-                padding: 24px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .card {
-                padding: 16px;
-            }
-            
-            .refresh-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
+
         
         /* 设备日志页面按钮悬停效果 */
         #device-logs-page .search-btn:hover span:last-child {
@@ -1778,8 +1614,14 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="devices-menu" onclick="switchPage('devices')" style="display: none;">
-                        <span class="nav-icon">🔌</span>
+                        <span class="nav-icon">🔧</span>
                         设备管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchPage('visual-recognition')">
+                        <span class="nav-icon">🔍</span>
+                        视觉识别
                     </a>
                 </li>
             </ul>
@@ -2042,6 +1884,124 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- 视觉识别页面 -->
+                    <div id="visual-recognition-page" class="page hidden">
+                        <div class="card">
+                            <h2>视觉识别</h2>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <!-- 左侧：待识别图像 -->
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                                        <h3 style="margin: 0; font-size: 16px; font-weight: 600;">待识别图像</h3>
+                                    </div>
+                                    <div style="position: relative; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; height: 500px; overflow: auto;">
+                                        <img id="recognition-image" src="https://via.placeholder.com/600x400?text=待识别图像" alt="待识别图像" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <!-- 动态生成的识别框 -->
+                                        <div id="recognition-boxes" style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; pointer-events: none;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 右侧：识别结果 -->
+                                <div class="card" style="margin-bottom: 0;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                                        <h3 style="margin: 0; font-size: 16px; font-weight: 600;">识别结果</h3>
+                                    </div>
+                                    
+                                    <!-- 识别图像预览 -->
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                        <button id="prev-image-btn" style="background: var(--bg-secondary); border: none; border-radius: var(--radius-sm); padding: 8px; cursor: pointer; font-size: 18px; color: var(--text-primary); transition: var(--transition);">
+                                            &lt;
+                                        </button>
+                                        <div style="display: flex; gap: 10px; flex: 1; justify-content: center;">
+                                            <div class="identified-image active" style="border: 2px solid var(--primary-color); border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
+                                                <img src="https://via.placeholder.com/100x100?text=蚊子1" alt="识别蚊子1" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div class="identified-image" style="border: 2px solid transparent; border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
+                                                <img src="https://via.placeholder.com/100x100?text=蚊子2" alt="识别蚊子2" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div class="identified-image" style="border: 2px solid transparent; border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
+                                                <img src="https://via.placeholder.com/100x100?text=蚊子3" alt="识别蚊子3" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        </div>
+                                        <button id="next-image-btn" style="background: var(--bg-secondary); border: none; border-radius: var(--radius-sm); padding: 8px; cursor: pointer; font-size: 18px; color: var(--text-primary); transition: var(--transition);">
+                                            &gt;
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- 分类标签 -->
+                                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                        <button class="category-btn active" style="background: var(--primary-color); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">种 (Species)</button>
+                                        <button class="category-btn" style="background: var(--bg-secondary); color: var(--text-primary); border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">属 (Genus)</button>
+                                        <button class="category-btn" style="background: var(--bg-secondary); color: var(--text-primary); border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">科 (Family)</button>
+                                    </div>
+                                    
+                                    <!-- 识别结果表格 -->
+                                    <div style="overflow-x: auto;">
+                                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                            <thead>
+                                                <tr style="background-color: var(--bg-secondary);">
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">中文名</th>
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">学名</th>
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">可信度</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recognition-results-table">
+                                                <tr style="transition: var(--transition);">
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">埃及伊蚊</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes aegypti</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">57.34%</td>
+                                                </tr>
+                                                <tr style="transition: var(--transition);">
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">白纹伊蚊</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes albopictus</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">15.57%</td>
+                                                </tr>
+                                                <tr style="transition: var(--transition);">
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">纤毛鳞蚊</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Psorophora ciliata</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">4.08%</td>
+                                                </tr>
+                                                <tr style="transition: var(--transition);">
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">日本伊蚊</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes japonicus</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">2.61%</td>
+                                                </tr>
+                                                <tr style="transition: var(--transition);">
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">多突黑大蚊</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Nigrotipula nigra</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">1.40%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <!-- 提示信息和操作按钮 -->
+                                    <div style="background-color: var(--info-light); border-left: 4px solid var(--info-color); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+                                        <p style="margin: 0; font-size: 14px; color: var(--info-color);">
+                                            <strong>💡 提示：</strong>您还可以在待识别图像上手动选取区域做识别。
+                                        </p>
+                                        <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--info-color);">
+                                            <strong>✨ 建议：</strong>为了取得更好的识别效果，请使选取的区域尽量紧贴着待识别对象的边界。
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- 操作按钮 -->
+                                    <div style="display: flex; gap: 10px;">
+                                        <button id="select-area-btn" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+                                            📏 选取图像区域
+                                        </button>
+                                        <button id="recognize-area-btn" style="background: linear-gradient(135deg, var(--secondary-color) 0%, var(--secondary-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+                                            🚀 识别图像区域
+                                        </button>
+                                        <button id="cancel-selection-btn" style="background: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+                                            ❌ 取消选取
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -2070,7 +2030,7 @@
         var currentPage = 1;
         var totalPages = 1;
         var totalImages = 0;
-        var imagesPerPage = 8;
+        var imagesPerPage = 5;
         
 
         
@@ -2146,7 +2106,8 @@
                 'images': '上传图片',
                 'device-logs': '设备日志',
                 'system-logs': '系统日志',
-                'devices': '设备管理'
+                'devices': '设备管理',
+                'visual-recognition': '视觉识别'
             };
             document.getElementById('page-title').textContent = pageTitles[pageName] || '页面';
             
@@ -2947,6 +2908,297 @@
         document.querySelector('.modal-close').addEventListener('click', function() {
             resetImageTransform();
         });
+        
+        // 视觉识别页面交互逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 分类标签切换
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            if (categoryBtns.length > 0) {
+                categoryBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // 移除所有active类
+                        categoryBtns.forEach(b => b.classList.remove('active'));
+                        // 添加active类到当前按钮
+                        this.classList.add('active');
+                        
+                        // 切换分类时的API调用
+                        const category = this.textContent.trim().split(' ')[0];
+                        fetchRecognitionResults(category);
+                    });
+                });
+            }
+            
+            // 识别图像预览切换
+            const identifiedImages = document.querySelectorAll('.identified-image');
+            if (identifiedImages.length > 0) {
+                identifiedImages.forEach(img => {
+                    img.addEventListener('click', function() {
+                        // 移除所有active类
+                        identifiedImages.forEach(i => i.classList.remove('active'));
+                        // 添加active类到当前图像
+                        this.classList.add('active');
+                        
+                        // 切换预览图像时的API调用
+                        const imageIndex = Array.from(identifiedImages).indexOf(this);
+                        fetchImageDetails(imageIndex);
+                    });
+                });
+            }
+            
+            // 上一张/下一张图像切换
+            const prevImageBtn = document.getElementById('prev-image-btn');
+            const nextImageBtn = document.getElementById('next-image-btn');
+            
+            if (prevImageBtn && nextImageBtn) {
+                prevImageBtn.addEventListener('click', function() {
+                    // 上一张图像的API调用
+                    fetchPreviousImage();
+                });
+                
+                nextImageBtn.addEventListener('click', function() {
+                    // 下一张图像的API调用
+                    fetchNextImage();
+                });
+            }
+            
+            // 区域选取功能
+            const selectAreaBtn = document.getElementById('select-area-btn');
+            const recognizeAreaBtn = document.getElementById('recognize-area-btn');
+            const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
+            const recognitionImage = document.getElementById('recognition-image');
+            const recognitionBoxes = document.getElementById('recognition-boxes');
+            
+            if (selectAreaBtn && recognizeAreaBtn && cancelSelectionBtn && recognitionImage && recognitionBoxes) {
+                let isSelecting = false;
+                let startX, startY, endX, endY;
+                let currentSelection = null;
+                
+                selectAreaBtn.addEventListener('click', function() {
+                    isSelecting = true;
+                    recognitionImage.style.cursor = 'crosshair';
+                    // 显示提示信息
+                    alert('请在图像上拖动鼠标选取识别区域');
+                });
+                
+                recognitionImage.addEventListener('mousedown', function(e) {
+                    if (!isSelecting) return;
+                    
+                    const rect = recognitionImage.getBoundingClientRect();
+                    startX = e.clientX - rect.left;
+                    startY = e.clientY - rect.top;
+                    
+                    // 创建新的选择框
+                    currentSelection = document.createElement('div');
+                    currentSelection.style.position = 'absolute';
+                    currentSelection.style.border = '2px solid #4285f4';
+                    currentSelection.style.backgroundColor = 'rgba(66, 133, 244, 0.2)';
+                    currentSelection.style.pointerEvents = 'none';
+                    recognitionBoxes.appendChild(currentSelection);
+                });
+                
+                recognitionImage.addEventListener('mousemove', function(e) {
+                    if (!isSelecting || !currentSelection) return;
+                    
+                    const rect = recognitionImage.getBoundingClientRect();
+                    endX = e.clientX - rect.left;
+                    endY = e.clientY - rect.top;
+                    
+                    const width = Math.abs(endX - startX);
+                    const height = Math.abs(endY - startY);
+                    const left = Math.min(startX, endX);
+                    const top = Math.min(startY, endY);
+                    
+                    currentSelection.style.width = width + 'px';
+                    currentSelection.style.height = height + 'px';
+                    currentSelection.style.left = left + 'px';
+                    currentSelection.style.top = top + 'px';
+                });
+                
+                recognitionImage.addEventListener('mouseup', function(e) {
+                    if (!isSelecting) return;
+                    
+                    isSelecting = false;
+                    recognitionImage.style.cursor = 'default';
+                    // 保存选择区域
+                    const selectionData = {
+                        x: Math.min(startX, endX),
+                        y: Math.min(startY, endY),
+                        width: Math.abs(endX - startX),
+                        height: Math.abs(endY - startY)
+                    };
+                    
+                    console.log('选取区域:', selectionData);
+                });
+                
+                recognizeAreaBtn.addEventListener('click', function() {
+                    if (!currentSelection) {
+                        alert('请先选取识别区域');
+                        return;
+                    }
+                    
+                    // 获取选择区域数据
+                    const selectionData = {
+                        x: parseInt(currentSelection.style.left),
+                        y: parseInt(currentSelection.style.top),
+                        width: parseInt(currentSelection.style.width),
+                        height: parseInt(currentSelection.style.height)
+                    };
+                    
+                    // 调用识别API
+                    recognizeSelectedArea(selectionData);
+                });
+                
+                cancelSelectionBtn.addEventListener('click', function() {
+                    isSelecting = false;
+                    recognitionImage.style.cursor = 'default';
+                    // 清除所有选择框
+                    recognitionBoxes.innerHTML = '';
+                    currentSelection = null;
+                });
+            }
+        });
+        
+        // 视觉识别API调用函数
+        function fetchRecognitionResults(category) {
+            // RESTful API: GET /api/recognition/results?category={category}
+            fetch(`/api/recognition/results?category=${encodeURIComponent(category)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 更新识别结果表格
+                updateRecognitionResultsTable(data.results);
+            })
+            .catch(error => {
+                console.error('获取识别结果失败:', error);
+                alert('获取识别结果失败，请稍后重试');
+            });
+        }
+        
+        function fetchImageDetails(imageIndex) {
+            // RESTful API: GET /api/recognition/image/{index}
+            fetch(`/api/recognition/image/${imageIndex}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 更新图像详情
+                console.log('图像详情:', data);
+            })
+            .catch(error => {
+                console.error('获取图像详情失败:', error);
+                alert('获取图像详情失败，请稍后重试');
+            });
+        }
+        
+        function fetchPreviousImage() {
+            // RESTful API: GET /api/recognition/prev-image
+            fetch('/api/recognition/prev-image', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 更新图像列表
+                console.log('上一张图像:', data);
+            })
+            .catch(error => {
+                console.error('获取上一张图像失败:', error);
+                alert('获取上一张图像失败，请稍后重试');
+            });
+        }
+        
+        function fetchNextImage() {
+            // RESTful API: GET /api/recognition/next-image
+            fetch('/api/recognition/next-image', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 更新图像列表
+                console.log('下一张图像:', data);
+            })
+            .catch(error => {
+                console.error('获取下一张图像失败:', error);
+                alert('获取下一张图像失败，请稍后重试');
+            });
+        }
+        
+        function recognizeSelectedArea(selectionData) {
+            // RESTful API: POST /api/recognition/recognize
+            fetch('/api/recognition/recognize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(selectionData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('API请求失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 更新识别结果
+                updateRecognitionResultsTable(data.results);
+            })
+            .catch(error => {
+                console.error('识别图像区域失败:', error);
+                alert('识别图像区域失败，请稍后重试');
+            });
+        }
+        
+        function updateRecognitionResultsTable(results) {
+            const tbody = document.getElementById('recognition-results-table');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            results.forEach(result => {
+                const tr = document.createElement('tr');
+                tr.style.transition = 'all 0.3s ease';
+                
+                tr.innerHTML = `
+                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${result.chineseName}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${result.scientificName}</td>
+                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${result.confidence}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
     </script>
 </body>
 </html>
