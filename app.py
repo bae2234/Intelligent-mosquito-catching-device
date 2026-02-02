@@ -566,6 +566,57 @@ def push_sensor_data():
         # 推送传感器数据到前端
         push_data_to_frontend('sensor_data', sensor_data)
         
+        # 将数据保存到数据库
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        # 确保sensor_data表存在
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sensor_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            device_id TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            temperature_inside REAL,
+            temperature_outside REAL,
+            humidity REAL,
+            duoj1 INTEGER,
+            duoj2 INTEGER,
+            duoj3 INTEGER,
+            duoj4 INTEGER,
+            feng1 INTEGER,
+            feng2 INTEGER,
+            jia INTEGER,
+            raw_data TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # 准备插入数据
+        device_id = sensor_data.get('device_id', 'unknown')
+        timestamp = sensor_data.get('timestamp', datetime.now().isoformat())
+        temperature_inside = sensor_data.get('temperature_inside')
+        temperature_outside = sensor_data.get('temperature_outside')
+        humidity = sensor_data.get('humidity')
+        duoj1 = sensor_data.get('duoj1')
+        duoj2 = sensor_data.get('duoj2')
+        duoj3 = sensor_data.get('duoj3')
+        duoj4 = sensor_data.get('duoj4')
+        feng1 = sensor_data.get('feng1')
+        feng2 = sensor_data.get('feng2')
+        jia = sensor_data.get('jia')
+        raw_data = json.dumps(sensor_data)
+        
+        # 插入数据
+        cursor.execute('''
+        INSERT INTO sensor_data (device_id, timestamp, temperature_inside, temperature_outside, 
+                               humidity, duoj1, duoj2, duoj3, duoj4, feng1, feng2, jia, raw_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (device_id, timestamp, temperature_inside, temperature_outside, 
+             humidity, duoj1, duoj2, duoj3, duoj4, feng1, feng2, jia, raw_data))
+        
+        conn.commit()
+        conn.close()
+        
         return jsonify({
             'code': 200,
             'msg': 'Data pushed successfully'
@@ -580,6 +631,7 @@ def push_sensor_data():
 @app.route('/api/delete_image/<int:image_id>', methods=['DELETE'])
 @login_required
 def delete_image(image_id):
+    conn = None
     try:
         conn = sqlite3.connect(app.config['DB_PATH'])
         cursor = conn.cursor()
@@ -589,7 +641,6 @@ def delete_image(image_id):
         image = cursor.fetchone()
         
         if not image:
-            conn.close()
             return jsonify({'code': 404, 'msg': '图片不存在'})
         
         image_path = image[0]
@@ -597,7 +648,6 @@ def delete_image(image_id):
         
         # 检查权限：普通用户只能删除自己设备的图片
         if session['role'] != 'admin' and session['device_id'] != device_id:
-            conn.close()
             return jsonify({'code': 403, 'msg': '无权限删除该图片'})
         
         # 删除图片文件
@@ -610,15 +660,23 @@ def delete_image(image_id):
         # 删除关联的设备条目
         cursor.execute("DELETE FROM devices WHERE device_id = ?", (device_id,))
         
-        # 删除用户设备关联
-        cursor.execute("DELETE FROM user_devices WHERE device_id = ?", (device_id,))
+        # 删除用户设备关联（如果表存在）
+        try:
+            cursor.execute("DELETE FROM user_devices WHERE device_id = ?", (device_id,))
+        except sqlite3.OperationalError:
+            # 忽略表不存在的错误
+            pass
         
         conn.commit()
-        conn.close()
         
         return jsonify({'code': 200, 'msg': '图片和关联设备已成功删除'})
     except Exception as e:
+        if conn:
+            conn.rollback()
         return jsonify({'code': 500, 'msg': f'删除失败: {str(e)}'})
+    finally:
+        if conn:
+            conn.close()
 
 # 图片查看API
 @app.route('/api/view_image/<int:image_id>', methods=['GET'])

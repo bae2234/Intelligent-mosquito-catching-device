@@ -1,3 +1,31 @@
+# 重启Web界面服务器
+sudo systemctl restart mosquito-web-server
+
+# 重启MQTT服务器
+sudo systemctl restart mosquito-mqtt-server
+
+# 重启MQTT数据接收器
+sudo systemctl restart mosquito-mqtt-receiver
+# 同时重启所有服务
+sudo systemctl restart mosquito-web-server mosquito-mqtt-server mosquito-mqtt-receiver
+
+
+# 查看服务状态
+sudo systemctl status mosquito-web-server mosquito-mqtt-server mosquito-mqtt-receiver
+
+# 查看单个服务状态
+sudo systemctl status mosquito-web-server
+
+# 检查Web服务器端口（默认5000）
+netstat -tuln | grep 5000
+
+# 检查MQTT服务器端口（默认1883）
+netstat -tuln | grep 1883
+
+
+# 查看所有相关服务状态
+sudo systemctl list-units --type=service --state=active | grep mosquito
+
 # Git代码维护指南
 
 ## 1. 仓库初始化与配置
