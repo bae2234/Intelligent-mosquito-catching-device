@@ -1,0 +1,14 @@
+[Unit]
+Description=Intelligent Mosquito Catching Device MQTT Receiver
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/Intelligent-mosquito-catching-device
+ExecStart=/home/ubuntu/Intelligent-mosquito-catching-device/venv/bin/python3 /home/ubuntu/Intelligent-mosquito-catching-device/mqtt_receiver.py
+Restart=on-failure
+User=ubuntu
+Group=ubuntu
+
+[Install]
+WantedBy=multi-user.target
