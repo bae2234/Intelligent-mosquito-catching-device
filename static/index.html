@@ -2143,11 +2143,21 @@
                                 <div class="card" style="margin-bottom: 0;">
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                                         <h3 style="margin: 0; font-size: 16px; font-weight: 600;">待识别图像</h3>
+                                        <button id="load-image-btn" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
+                                            📁 选择图片
+                                        </button>
                                     </div>
-                                    <div style="position: relative; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; height: 500px; overflow: auto;">
-                                        <img id="recognition-image" src="https://via.placeholder.com/600x400?text=待识别图像" alt="待识别图像" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    <div style="position: relative; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); height: 500px; overflow: hidden;">
+                                        <img id="recognition-image" src="https://via.placeholder.com/600x400?text=待识别图像" alt="待识别图像" style="width: 100%; height: 100%; object-fit: cover;">
                                         <!-- 动态生成的识别框 -->
-                                        <div id="recognition-boxes" style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; pointer-events: none;"></div>
+                                        <div id="recognition-boxes" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;"></div>
+                                    </div>
+                                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                                    <div style="margin-top: 15px;">
+                                        <button id="analyze-btn" style="background: linear-gradient(135deg, var(--nature-color) 0%, var(--success-color) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 12px 24px; cursor: pointer; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm); width: 100%;">
+                                            🚀 开始分析
+                                        </button>
+                                        <div id="analysis-status" style="margin-top: 10px; padding: 10px; border-radius: var(--radius-sm); display: none;"></div>
                                     </div>
                                 </div>
                                 
@@ -2157,32 +2167,32 @@
                                         <h3 style="margin: 0; font-size: 16px; font-weight: 600;">识别结果</h3>
                                     </div>
                                     
-                                    <!-- 识别图像预览 -->
-                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                                        <button id="prev-image-btn" style="background: var(--bg-secondary); border: none; border-radius: var(--radius-sm); padding: 8px; cursor: pointer; font-size: 18px; color: var(--text-primary); transition: var(--transition);">
-                                            &lt;
-                                        </button>
-                                        <div style="display: flex; gap: 10px; flex: 1; justify-content: center;">
-                                            <div class="identified-image active" style="border: 2px solid var(--primary-color); border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
-                                                <img src="https://via.placeholder.com/100x100?text=蚊子1" alt="识别蚊子1" style="width: 100%; height: 100%; object-fit: cover;">
-                                            </div>
-                                            <div class="identified-image" style="border: 2px solid transparent; border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
-                                                <img src="https://via.placeholder.com/100x100?text=蚊子2" alt="识别蚊子2" style="width: 100%; height: 100%; object-fit: cover;">
-                                            </div>
-                                            <div class="identified-image" style="border: 2px solid transparent; border-radius: var(--radius-sm); padding: 5px; cursor: pointer; width: 100px; height: 100px; overflow: hidden;">
-                                                <img src="https://via.placeholder.com/100x100?text=蚊子3" alt="识别蚊子3" style="width: 100%; height: 100%; object-fit: cover;">
-                                            </div>
+                                    <!-- 识别统计信息 -->
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                        <div style="background-color: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                                            <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-secondary);">总识别数</h4>
+                                            <div id="total-count" style="font-size: 24px; font-weight: 700; color: var(--primary-color);">0</div>
                                         </div>
-                                        <button id="next-image-btn" style="background: var(--bg-secondary); border: none; border-radius: var(--radius-sm); padding: 8px; cursor: pointer; font-size: 18px; color: var(--text-primary); transition: var(--transition);">
-                                            &gt;
-                                        </button>
+                                        <div style="background-color: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                                            <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-secondary);">分析耗时</h4>
+                                            <div id="analyze-time" style="font-size: 24px; font-weight: 700; color: var(--secondary-color);">0 ms</div>
+                                        </div>
                                     </div>
                                     
-                                    <!-- 分类标签 -->
-                                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                                        <button class="category-btn active" style="background: var(--primary-color); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">种 (Species)</button>
-                                        <button class="category-btn" style="background: var(--bg-secondary); color: var(--text-primary); border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">属 (Genus)</button>
-                                        <button class="category-btn" style="background: var(--bg-secondary); color: var(--text-primary); border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; transition: var(--transition);">科 (Family)</button>
+                                    <!-- 种类分布 -->
+                                    <div style="background-color: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 20px;">
+                                        <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-secondary);">品种分布</h4>
+                                        <div id="species-count" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                            <!-- 动态生成 -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 性别分布 -->
+                                    <div style="background-color: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 20px;">
+                                        <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: var(--text-secondary);">性别分布</h4>
+                                        <div id="gender-count" style="display: flex; gap: 15px;">
+                                            <!-- 动态生成 -->
+                                        </div>
                                     </div>
                                     
                                     <!-- 识别结果表格 -->
@@ -2190,62 +2200,27 @@
                                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                                             <thead>
                                                 <tr style="background-color: var(--bg-secondary);">
-                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">中文名</th>
-                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">学名</th>
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">分类</th>
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">品种</th>
+                                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">性别</th>
                                                     <th style="padding: 12px; text-align: left; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-primary);">可信度</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="recognition-results-table">
                                                 <tr style="transition: var(--transition);">
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">埃及伊蚊</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes aegypti</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">57.34%</td>
-                                                </tr>
-                                                <tr style="transition: var(--transition);">
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">白纹伊蚊</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes albopictus</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">15.57%</td>
-                                                </tr>
-                                                <tr style="transition: var(--transition);">
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">纤毛鳞蚊</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Psorophora ciliata</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">4.08%</td>
-                                                </tr>
-                                                <tr style="transition: var(--transition);">
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">日本伊蚊</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Aedes japonicus</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">2.61%</td>
-                                                </tr>
-                                                <tr style="transition: var(--transition);">
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">多突黑大蚊</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">Nigrotipula nigra</td>
-                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">1.40%</td>
+                                                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color); text-align: center;" colspan="4">
+                                                        请选择图片并点击"开始分析"按钮
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     
-                                    <!-- 提示信息和操作按钮 -->
+                                    <!-- 提示信息 -->
                                     <div style="background-color: var(--info-light); border-left: 4px solid var(--info-color); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 20px;">
                                         <p style="margin: 0; font-size: 14px; color: var(--info-color);">
-                                            <strong>💡 提示：</strong>您还可以在待识别图像上手动选取区域做识别。
+                                            <strong>💡 提示：</strong>识别结果将实时显示，包括蚊子的品种、性别和位置信息。
                                         </p>
-                                        <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--info-color);">
-                                            <strong>✨ 建议：</strong>为了取得更好的识别效果，请使选取的区域尽量紧贴着待识别对象的边界。
-                                        </p>
-                                    </div>
-                                    
-                                    <!-- 操作按钮 -->
-                                    <div style="display: flex; gap: 10px;">
-                                        <button id="select-area-btn" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
-                                            📏 选取图像区域
-                                        </button>
-                                        <button id="recognize-area-btn" style="background: linear-gradient(135deg, var(--nature-color) 0%, var(--success-color) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
-                                            🚀 识别图像区域
-                                        </button>
-                                        <button id="cancel-selection-btn" style="background: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-hover) 100%); color: white; border: none; border-radius: var(--radius-md); padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: var(--shadow-sm);">
-                                            ❌ 取消选取
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -2416,6 +2391,12 @@
             if (currentPageName === 'images' && currentPage === 1) {
                 loadImages(1);
             }
+        });
+        
+        // 接收视觉识别结果
+        socket.on('visual_result', (data) => {
+            addSystemLog(`收到视觉识别结果: 图片ID ${data.image_id}`, 'success');
+            displayVisualResults(data);
         });
         
         // 更新传感器数据显示
@@ -2669,6 +2650,11 @@
                         } else {
                             imageList.innerHTML = '';
                             images.forEach(image => {
+                                // 只显示由设备端发送的图片，排除用户手动识别的图片
+                                if (image.device_id === 'visual-analysis') {
+                                    return;
+                                }
+                                
                                 const tr = document.createElement('tr');
                                 tr.innerHTML = `
                                     <td><input type="checkbox" class="image-checkbox" data-image-id="${image.id}"></td>
@@ -2686,7 +2672,8 @@
                                     <td>
                                         <div class="table-actions">
                                             <a href="javascript:void(0)" class="view-btn" onclick="openImageModal('/data/images/${image.filename}', ${JSON.stringify(image).replace(/"/g, '&quot;')})">&gt; 查看</a>
-                                            <a href="javascript:void(0)" class="delete-btn" onclick="deleteImage(${image.id})">删除</a>
+                                            <a href="javascript:void(0)" class="view-btn" onclick="analyzeExistingImage(${image.id}, '/data/images/${image.filename}', '${image.device_id}')">&gt; 识别</a>
+                                            <a href="javascript:void(0)" class="delete-btn" onclick="deleteImage(${image.id})">&gt; 删除</a>
                                         </div>
                                     </td>
                                 `;
@@ -3459,6 +3446,416 @@
                 tbody.appendChild(tr);
             });
         }
+        
+        // 视觉识别相关变量
+        let currentImageId = 0;
+        let currentImagePath = '';
+        
+        // 初始化视觉识别页面
+        function initVisualRecognition() {
+            // 绑定图片选择按钮
+            document.getElementById('load-image-btn').addEventListener('click', function() {
+                document.getElementById('image-upload').click();
+            });
+            
+            // 绑定图片上传事件
+            document.getElementById('image-upload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // 检查文件大小，确保不超过10MB
+                    if (file.size > 10 * 1024 * 1024) {
+                        showAnalysisStatus('图片大小不能超过10MB，请选择较小的图片', 'error');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const image = document.getElementById('recognition-image');
+                        image.src = e.target.result;
+                        
+                        // 等待图片加载完成后再清除识别框和重置结果
+                        image.onload = function() {
+                            // 清除之前的识别框
+                            document.getElementById('recognition-boxes').innerHTML = '';
+                            // 重置结果
+                            resetVisualResults();
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 绑定分析按钮
+            document.getElementById('analyze-btn').addEventListener('click', function() {
+                analyzeImage();
+            });
+        }
+        
+        // 重置视觉识别结果
+        function resetVisualResults() {
+            document.getElementById('total-count').textContent = '0';
+            document.getElementById('analyze-time').textContent = '0 ms';
+            document.getElementById('species-count').innerHTML = '';
+            document.getElementById('gender-count').innerHTML = '';
+            document.getElementById('recognition-results-table').innerHTML = `
+                <tr style="transition: var(--transition);">
+                    <td style="padding: 12px; border-bottom: 1px solid var(--border-color); text-align: center;" colspan="4">
+                        请选择图片并点击"开始分析"按钮
+                    </td>
+                </tr>
+            `;
+            document.getElementById('recognition-boxes').innerHTML = '';
+        }
+        
+        // 分析图片
+        function analyzeImage() {
+            const image = document.getElementById('recognition-image');
+            if (image.src === 'https://via.placeholder.com/600x400?text=待识别图像') {
+                showAnalysisStatus('请先选择一张图片', 'error');
+                return;
+            }
+            
+            showAnalysisStatus('正在上传图片...', 'info');
+            
+            // 获取选中的文件
+            const fileInput = document.getElementById('image-upload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAnalysisStatus('请先选择一张图片', 'error');
+                return;
+            }
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('device_id', currentDeviceId || 'visual-analysis');
+            
+            // 上传图片
+            fetch('/upload/image', {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return Promise.reject('已重定向到登录页面');
+                }
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error('上传失败: ' + response.statusText);
+                }
+                
+                // 尝试解析为JSON
+                return response.json().catch(error => {
+                    throw new Error('服务器返回无效数据，请确保您已登录');
+                });
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    showAnalysisStatus('图片上传成功，正在分析...', 'info');
+                    
+                    // 调用分析接口
+                    currentImageId = Date.now();
+                    currentImagePath = data.path;
+                    
+                    return fetch('/api/trigger_analysis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            image_id: currentImageId,
+                            image_path: currentImagePath
+                        })
+                    });
+                } else {
+                    throw new Error('图片上传失败: ' + (data.msg || '未知错误'));
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return Promise.reject('已重定向到登录页面');
+                }
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error('分析失败: ' + response.statusText);
+                }
+                
+                // 尝试解析为JSON
+                return response.json().catch(error => {
+                    throw new Error('服务器返回无效数据，请确保您已登录');
+                });
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    showAnalysisStatus('分析任务已提交，正在处理...', 'info');
+                } else {
+                    showAnalysisStatus('分析任务提交失败: ' + (data.msg || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('分析图片时出错：', error);
+                console.error('错误详情：', error.message, error.stack);
+                showAnalysisStatus('分析图片时发生网络错误: ' + (error.message || '未知错误') + '，请稍后重试。', 'error');
+            });
+        }
+        
+        // 分析现有图片（从上传图片管理列表中选择）
+        function analyzeExistingImage(imageId, imageUrl, deviceId) {
+            // 切换到视觉识别页面
+            switchPage('visual-recognition');
+            
+            // 显示图片
+            const recognitionImage = document.getElementById('recognition-image');
+            recognitionImage.src = imageUrl;
+            
+            // 清除之前的识别框和结果
+            document.getElementById('recognition-boxes').innerHTML = '';
+            resetVisualResults();
+            
+            // 调用分析接口
+            currentImageId = imageId;
+            currentImagePath = '/data/images/' + imageUrl.split('/').pop();
+            
+            showAnalysisStatus('正在分析图片...', 'info');
+            
+            fetch('/api/trigger_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    image_id: currentImageId,
+                    image_path: currentImagePath
+                })
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return Promise.reject('已重定向到登录页面');
+                }
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error('分析失败: ' + response.statusText);
+                }
+                
+                // 尝试解析为JSON
+                return response.json().catch(error => {
+                    throw new Error('服务器返回无效数据，请确保您已登录');
+                });
+            })
+            .then(data => {
+                if (data.code === 200) {
+                    showAnalysisStatus('分析任务已提交，正在处理...', 'info');
+                } else {
+                    showAnalysisStatus('分析任务提交失败: ' + (data.msg || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('分析图片时出错：', error);
+                console.error('错误详情：', error.message, error.stack);
+                showAnalysisStatus('分析图片时发生网络错误: ' + (error.message || '未知错误') + '，请稍后重试。', 'error');
+            });
+        }
+        
+        // 显示分析状态
+        function showAnalysisStatus(message, type) {
+            const statusDiv = document.getElementById('analysis-status');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'error') {
+                statusDiv.style.backgroundColor = 'var(--danger-light)';
+                statusDiv.style.border = '1px solid var(--danger-color)';
+                statusDiv.style.color = 'var(--danger-color)';
+            } else if (type === 'success') {
+                statusDiv.style.backgroundColor = 'var(--success-light)';
+                statusDiv.style.border = '1px solid var(--success-color)';
+                statusDiv.style.color = 'var(--success-color)';
+            } else {
+                statusDiv.style.backgroundColor = 'var(--info-light)';
+                statusDiv.style.border = '1px solid var(--info-color)';
+                statusDiv.style.color = 'var(--info-color)';
+            }
+        }
+        
+        // 显示视觉识别结果
+        function displayVisualResults(data) {
+            if (data.status === 'success') {
+                const result = data.result;
+                
+                // 更新统计信息
+                document.getElementById('total-count').textContent = result.total_count || 0;
+                document.getElementById('analyze-time').textContent = result.analyze_time || 0 + ' ms';
+                
+                // 更新品种分布
+                const speciesCountDiv = document.getElementById('species-count');
+                speciesCountDiv.innerHTML = '';
+                if (result.species_count) {
+                    Object.entries(result.species_count).forEach(([species, count]) => {
+                        const speciesItem = document.createElement('div');
+                        speciesItem.style.backgroundColor = 'var(--primary-light)';
+                        speciesItem.style.padding = '8px 12px';
+                        speciesItem.style.borderRadius = '20px';
+                        speciesItem.style.fontSize = '14px';
+                        speciesItem.style.fontWeight = '500';
+                        speciesItem.textContent = `${species}: ${count}`;
+                        speciesCountDiv.appendChild(speciesItem);
+                    });
+                }
+                
+                // 更新性别分布
+                const genderCountDiv = document.getElementById('gender-count');
+                genderCountDiv.innerHTML = '';
+                if (result.gender_count) {
+                    Object.entries(result.gender_count).forEach(([gender, count]) => {
+                        const genderItem = document.createElement('div');
+                        genderItem.style.backgroundColor = 'var(--secondary-light)';
+                        genderItem.style.padding = '10px 16px';
+                        genderItem.style.borderRadius = 'var(--radius-md)';
+                        genderItem.style.fontSize = '14px';
+                        genderItem.style.fontWeight = '500';
+                        genderItem.textContent = `${gender}: ${count}`;
+                        genderCountDiv.appendChild(genderItem);
+                    });
+                }
+                
+                // 更新结果表格
+                const resultsTable = document.getElementById('recognition-results-table');
+                resultsTable.innerHTML = '';
+                if (result.objects && result.objects.length > 0) {
+                    result.objects.forEach(obj => {
+                        const row = document.createElement('tr');
+                        row.style.transition = 'var(--transition)';
+                        row.innerHTML = `
+                            <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${obj.chinese_class || '未知'}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${obj.species || '未知'}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${obj.gender || '未知'}</td>
+                            <td style="padding: 12px; border-bottom: 1px solid var(--border-color);">${(obj.confidence * 100).toFixed(2)}%</td>
+                        `;
+                        resultsTable.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="padding: 12px; border-bottom: 1px solid var(--border-color); text-align: center;" colspan="4">
+                            未识别到蚊子
+                        </td>
+                    `;
+                    resultsTable.appendChild(row);
+                }
+                
+                // 绘制识别框
+                drawBoundingBoxes(result.objects);
+                
+                // 更新状态
+                showAnalysisStatus('分析完成！', 'success');
+            } else {
+                showAnalysisStatus('分析失败: ' + (data.error || '未知错误'), 'error');
+            }
+        }
+        
+        // 绘制边界框
+        function drawBoundingBoxes(objects) {
+            const boxesDiv = document.getElementById('recognition-boxes');
+            boxesDiv.innerHTML = '';
+            
+            if (!objects || objects.length === 0) return;
+            
+            const image = document.getElementById('recognition-image');
+            const container = image.parentElement;
+            
+            // 获取图片的实际尺寸（原始尺寸）
+            const naturalWidth = image.naturalWidth;
+            const naturalHeight = image.naturalHeight;
+            
+            // 获取容器的尺寸
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // 计算图片的宽高比
+            const imageRatio = naturalWidth / naturalHeight;
+            // 计算容器的宽高比
+            const containerRatio = containerWidth / containerHeight;
+            
+            let scaleX, scaleY, offsetX, offsetY;
+            
+            // 计算缩放比例和偏移量（考虑object-fit: cover的情况）
+            if (imageRatio > containerRatio) {
+                // 图片比容器更宽，垂直方向填充，水平方向裁剪
+                scaleY = containerHeight / naturalHeight;
+                scaleX = scaleY;
+                offsetY = 0;
+                offsetX = (containerWidth - naturalWidth * scaleX) / 2;
+            } else {
+                // 图片比容器更高，水平方向填充，垂直方向裁剪
+                scaleX = containerWidth / naturalWidth;
+                scaleY = scaleX;
+                offsetX = 0;
+                offsetY = (containerHeight - naturalHeight * scaleY) / 2;
+            }
+            
+            objects.forEach((obj, index) => {
+                if (obj.bbox) {
+                    const [x, y, width, height] = obj.bbox;
+                    
+                    // 确保坐标在有效范围内
+                    const adjustedX = Math.max(0, offsetX + x * scaleX);
+                    const adjustedY = Math.max(0, offsetY + y * scaleY);
+                    const adjustedWidth = Math.min(width * scaleX, containerWidth - adjustedX);
+                    const adjustedHeight = Math.min(height * scaleY, containerHeight - adjustedY);
+                    
+                    const box = document.createElement('div');
+                    box.style.position = 'absolute';
+                    box.style.left = adjustedX + 'px';
+                    box.style.top = adjustedY + 'px';
+                    box.style.width = adjustedWidth + 'px';
+                    box.style.height = adjustedHeight + 'px';
+                    box.style.border = '2px solid var(--primary-color)';
+                    box.style.backgroundColor = 'rgba(74, 144, 226, 0.2)';
+                    box.style.borderRadius = '4px';
+                    box.style.zIndex = '10';
+                    box.style.transition = 'all 0.3s ease';
+                    
+                    // 添加标签
+                    const label = document.createElement('div');
+                    label.style.position = 'absolute';
+                    label.style.top = '-20px';
+                    label.style.left = '0';
+                    label.style.backgroundColor = 'var(--primary-color)';
+                    label.style.color = 'white';
+                    label.style.padding = '2px 6px';
+                    label.style.borderRadius = '3px';
+                    label.style.fontSize = '12px';
+                    label.style.fontWeight = '600';
+                    label.style.whiteSpace = 'nowrap';
+                    label.style.zIndex = '11';
+                    label.textContent = `${obj.chinese_class || '未知'} ${(obj.confidence * 100).toFixed(0)}%`;
+                    box.appendChild(label);
+                    
+                    boxesDiv.appendChild(box);
+                }
+            });
+        }
+        
+        // 重写switchPage函数以包含视觉识别初始化
+        const originalSwitchPage = switchPage;
+        switchPage = function(pageName) {
+            originalSwitchPage(pageName);
+            
+            // 如果切换到视觉识别页面，初始化
+            if (pageName === 'visual-recognition') {
+                initVisualRecognition();
+            }
+        };
     </script>
 </body>
 </html>

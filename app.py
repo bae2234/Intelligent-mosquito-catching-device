@@ -519,6 +519,133 @@ def get_sensor_data():
         'data': data
     })
 
+# 视觉识别相关功能
+
+# 创建视觉识别结果表
+conn = sqlite3.connect(app.config['DB_PATH'])
+cursor = conn.cursor()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS visual_recognition_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_id INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    total_count INTEGER,
+    analyze_time INTEGER,
+    species_count TEXT,
+    gender_count TEXT,
+    objects TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)
+''')
+conn.commit()
+conn.close()
+
+# 视觉识别回调接口
+@app.route('/api/callback', methods=['POST'])
+def visual_callback():
+    """接收视觉服务的识别结果"""
+    try:
+        data = request.get_json()
+        image_id = data.get('image_id')
+        status = data.get('status')
+        result = data.get('result', {})
+        
+        # 存储识别结果到数据库
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        INSERT INTO visual_recognition_results 
+        (image_id, status, total_count, analyze_time, species_count, gender_count, objects)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            image_id,
+            status,
+            result.get('total_count'),
+            result.get('analyze_time'),
+            json.dumps(result.get('species_count', {})),
+            json.dumps(result.get('gender_count', {})),
+            json.dumps(result.get('objects', []))
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        # 推送结果到前端
+        push_data_to_frontend('visual_result', data)
+        
+        return jsonify({'code': 200, 'msg': 'Callback received successfully'})
+    except Exception as e:
+        print(f"Callback error: {str(e)}")
+        return jsonify({'code': 500, 'msg': f'Callback error: {str(e)}'})
+
+# 触发视觉分析API
+@app.route('/api/trigger_analysis', methods=['POST'])
+@login_required
+def trigger_analysis():
+    """触发视觉服务进行分析"""
+    try:
+        import requests
+        
+        data = request.get_json()
+        image_id = data.get('image_id')
+        image_path = data.get('image_path')
+        
+        if not image_id or not image_path:
+            return jsonify({'code': 400, 'msg': 'Missing image_id or image_path'}), 400
+        
+        # 调用视觉服务
+        visual_service_url = 'http://localhost:8000/api/analyze'
+        callback_url = 'http://localhost:5000/api/callback'
+        
+        payload = {
+            'image_id': image_id,
+            'image_path': image_path,
+            'callback_url': callback_url
+        }
+        
+        response = requests.post(visual_service_url, json=payload)
+        
+        return jsonify({'code': 200, 'msg': 'Analysis triggered successfully', 'visual_response': response.json()})
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': f'Failed to trigger analysis: {str(e)}'})
+
+# 获取视觉识别结果
+@app.route('/api/visual_results/<int:image_id>', methods=['GET'])
+@login_required
+def get_visual_results(image_id):
+    """获取指定图片的视觉识别结果"""
+    try:
+        conn = sqlite3.connect(app.config['DB_PATH'])
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+        SELECT * FROM visual_recognition_results WHERE image_id = ? ORDER BY created_at DESC LIMIT 1
+        ''', (image_id,))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return jsonify({'code': 404, 'msg': 'No visual recognition results found'})
+        
+        # 转换数据格式
+        response_data = {
+            'id': result[0],
+            'image_id': result[1],
+            'status': result[2],
+            'total_count': result[3],
+            'analyze_time': result[4],
+            'species_count': json.loads(result[5]) if result[5] else {},
+            'gender_count': json.loads(result[6]) if result[6] else {},
+            'objects': json.loads(result[7]) if result[7] else [],
+            'created_at': result[8]
+        }
+        
+        return jsonify({'code': 200, 'msg': 'success', 'data': response_data})
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': f'Failed to get visual results: {str(e)}'})
+
 @app.route('/<path:filename>')
 def serve_static(filename):
     """静态文件服务"""
