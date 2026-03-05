@@ -1,30 +1,63 @@
-# 重启Web界面服务器
-sudo systemctl restart mosquito-web-server
+# 服务管理命令
 
-# 重启MQTT服务器
-sudo systemctl restart mosquito-mqtt-server
+## 重启Web界面服务器
+```bash
+# 停止现有进程
+pkill -f "python3 app.py"
+# 启动新进程
+nohup python3 app.py > app.log 2>&1 &
+```
 
-# 重启MQTT数据接收器
-sudo systemctl restart mosquito-mqtt-receiver
-# 同时重启所有服务
-sudo systemctl restart mosquito-web-server mosquito-mqtt-server mosquito-mqtt-receiver
+## 重启MQTT服务器
+```bash
+# 停止现有进程
+pkill -f "python3 mqtt_server.py"
+# 启动新进程
+nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
+```
 
+## 重启视觉识别服务
+```bash
+# 停止现有进程
+pkill -f "python3 visual_service.py"
+# 启动新进程
+nohup python3 visual_service.py > visual_service.log 2>&1 &
+```
 
-# 查看服务状态
-sudo systemctl status mosquito-web-server mosquito-mqtt-server mosquito-mqtt-receiver
+## 同时重启所有服务
+```bash
+# 停止所有进程
+pkill -f "python3 app.py"
+pkill -f "python3 mqtt_server.py"
+pkill -f "python3 visual_service.py"
 
-# 查看单个服务状态
-sudo systemctl status mosquito-web-server
+# 启动所有进程
+nohup python3 app.py > app.log 2>&1 &
+nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
+nohup python3 visual_service.py > visual_service.log 2>&1 &
+```
 
-# 检查Web服务器端口（默认5000）
+## 检查服务状态
+
+### 查看所有Python进程
+```bash
+ps aux | grep python
+```
+
+### 检查Web服务器端口（默认5000）
+```bash
 netstat -tuln | grep 5000
+```
 
-# 检查MQTT服务器端口（默认1883）
+### 检查MQTT服务器端口（默认1883）
+```bash
 netstat -tuln | grep 1883
+```
 
-
-# 查看所有相关服务状态
-sudo systemctl list-units --type=service --state=active | grep mosquito
+### 检查视觉识别服务端口（默认8000）
+```bash
+netstat -tuln | grep 8000
+```
 
 # Git代码维护指南
 
@@ -267,11 +300,17 @@ Intelligent-mosquito-catching-device/
 ├── app.py                # 主应用程序
 ├── mqtt_receiver.py      # MQTT消息接收处理
 ├── mqtt_server.py        # MQTT服务器实现
+├── visual_service.py     # 视觉识别服务
+├── best.pt               # 视觉识别模型文件
 ├── static/
 │   └── index.html        # 前端页面
+├── config/
+│   └── requirements.txt  # 依赖项配置文件
+├── docs/
+│   ├── TECHNICAL_DOCUMENTATION.md  # 技术文档
+│   ├── VISUAL_INTEGRATION_GUIDE.md # 视觉集成指南
+│   └── GIT_MAINTENANCE_GUIDE.md    # Git维护指南
 ├── .gitignore            # Git忽略文件配置
-├── TECHNICAL_DOCUMENTATION.md  # 技术文档
-├── GIT_MAINTENANCE_GUIDE.md    # Git维护指南
 └── test_db.py            # 数据库测试脚本
 ```
 
@@ -281,8 +320,13 @@ Intelligent-mosquito-catching-device/
 - 用户认证：管理员和设备登录
 - 实时数据推送：WebSocket通信
 - MQTT通信：设备数据接收和命令发送
+- 视觉识别：蚊子分类和性别识别功能
+- 视觉识别服务：独立的视觉识别服务(visual_service.py)
+- 前端视觉识别界面：图片上传、分析和结果展示
+- 识别框绘制：实时识别框绘制和标签显示
+- 品种和性别统计：品种和性别分布统计功能
 
 ---
 
-**创建时间**: 2025-12-18
-**版本**: 1.0
+**创建时间**: 2025-12-23
+**版本**: 1.1

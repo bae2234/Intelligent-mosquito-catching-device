@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/ubuntu/Intelligent-mosquito-catching-device
-ExecStart=/home/ubuntu/Intelligent-mosquito-catching-device/venv/bin/python3 /home/ubuntu/Intelligent-mosquito-catching-device/mqtt_server.py
+ExecStart=/home/ubuntu/Intelligent-mosquito-catching-device/venv/bin/python3 /home/ubuntu/Intelligent-mosquito-catching-device/src/services/mqtt_server.py
 Restart=on-failure
 User=ubuntu
 Group=ubuntu

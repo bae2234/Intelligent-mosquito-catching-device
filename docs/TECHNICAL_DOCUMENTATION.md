@@ -146,20 +146,44 @@
   - `date`: 日期（可选，格式：YYYY-MM-DD）
 - **返回**: 分页的设备日志列表
 
-### 4.5 静态资源接口
+### 4.5 视觉识别接口
 
-#### 4.5.1 访问首页
+#### 4.5.1 触发视觉分析
+- **URL**: `/api/trigger_analysis`
+- **方法**: `POST`
+- **权限**: 登录用户
+- **参数**:
+  - `image_id`: 图片ID
+  - `image_path`: 图片路径
+- **返回**: 分析任务提交结果
+
+#### 4.5.2 视觉识别回调
+- **URL**: `/api/callback`
+- **方法**: `POST`
+- **权限**: 无（内部服务调用）
+- **参数**: 视觉识别结果JSON对象
+- **返回**: 回调接收结果
+
+#### 4.5.3 获取视觉识别结果
+- **URL**: `/api/visual_results/<image_id>`
+- **方法**: `GET`
+- **权限**: 登录用户
+- **返回**: 视觉识别结果
+
+### 4.6 静态资源接口
+
+#### 4.6.1 访问首页
 - **URL**: `/`
 - **方法**: `GET`
 - **权限**: 登录用户
 - **返回**: 设备列表页面HTML
 
-#### 4.5.2 访问静态文件
+#### 4.6.2 访问静态文件
 - **URL**: `/static/<filename>`
 - **方法**: `GET`
 - **返回**: 静态资源文件
 
-#### 4.5.3 访问图片文件
+#### 4.6.3 访问图片文件
 - **URL**: `/data/images/<filename>`
 - **方法**: `GET`
 - **权限**: 登录用户（需设备权限）
@@ -202,6 +226,19 @@
 | id | INTEGER | PRIMARY KEY AUTOINCREMENT | 关联ID |
 | user_id | INTEGER | NOT NULL | 用户ID |
 | device_id | TEXT | NOT NULL | 设备ID |
+| created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+
+#### 5.1.5 视觉识别结果表 (visual_recognition_results)
+| 字段名 | 数据类型 | 约束 | 描述 |
+|--------|----------|------|------|
+| id | INTEGER | PRIMARY KEY AUTOINCREMENT | 结果ID |
+| image_id | INTEGER | NOT NULL | 关联图片ID |
+| status | TEXT | NOT NULL | 识别状态 |
+| total_count | INTEGER | | 总识别数 |
+| analyze_time | INTEGER | | 分析耗时(ms) |
+| species_count | TEXT | | 品种分布统计(JSON) |
+| gender_count | TEXT | | 性别分布统计(JSON) |
+| objects | TEXT | | 识别目标详细信息(JSON) |
 | created_at | TEXT | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 
 ## 6. 前端功能
@@ -252,6 +289,13 @@
 - 设备日志：20条/页
 - 支持页码跳转和前后页导航
 
+### 6.9 视觉识别功能
+- 图片上传和分析
+- 实时识别结果展示
+- 识别框绘制和标签显示
+- 品种和性别分布统计
+- 支持从上传图片管理列表中选择图片进行分析
+
 ## 7. 后端功能
 
 ### 7.1 设备数据处理
@@ -289,13 +333,19 @@
 - 定期清理旧图片文件（每24小时）
 - 自动释放存储空间
 
-### 7.7 用户权限控制
+### 7.7 视觉识别集成
+- 视觉识别服务调用和管理
+- 识别结果处理和存储
+- 回调接口实现
+- 支持4K分辨率图片分析
+
+### 7.8 用户权限控制
 - 基于角色的访问控制
 - 会话管理
 - API权限验证
 - 设备权限隔离
 
-### 7.8 自动设备注册
+### 7.9 自动设备注册
 - 设备ID格式验证
 - 防止重复注册
 - 自动创建设备记录
@@ -307,7 +357,7 @@
 1. 安装Python 3.12
 2. 创建虚拟环境: `python3 -m venv venv`
 3. 激活虚拟环境: `source venv/bin/activate`
-4. 安装依赖: `pip install flask flask_socketio paho-mqtt sqlite3 requests eventlet gunicorn`
+4. 安装依赖: `pip install -r config/requirements.txt`
 
 ### 8.2 数据库初始化
 - 运行应用时自动创建数据库表
@@ -320,11 +370,19 @@
 ├── app.py                # 主应用程序文件
 ├── mqtt_server.py        # MQTT消息处理服务
 ├── mqtt_receiver.py      # MQTT接收端脚本
+├── visual_service.py     # 视觉识别服务
+├── best.pt               # 视觉识别模型文件
 ├── static/
 │   └── index.html        # 前端页面
+├── config/
+│   └── requirements.txt  # 依赖项配置文件
+├── docs/
+│   ├── TECHNICAL_DOCUMENTATION.md  # 技术文档
+│   ├── VISUAL_INTEGRATION_GUIDE.md # 视觉集成指南
+│   └── GIT_MAINTENANCE_GUIDE.md    # Git维护指南
 ├── iot.db               # SQLite数据库文件
 ├── app.log              # 应用日志文件
-├── TECHNICAL_DOCUMENTATION.md  # 技术文档
+├── visual_service.log   # 视觉识别服务日志
 └── test_*.py            # 测试脚本
 ```
 
@@ -351,14 +409,22 @@ python3 mqtt_server.py
 nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
 ```
 
+#### （3）启动视觉识别服务
+```bash
+# 后台运行（推荐）
+nohup python3 visual_service.py > visual_service.log 2>&1 &
+```
+
 ### 8.5 访问地址
 - 前端访问: http://111.230.253.226:5000
 - API访问: http://111.230.253.226:5000/api/
 - MQTT访问: mqtt://111.230.253.226:1883
+- 视觉识别服务: http://111.230.253.226:8000
 
 ### 8.6 端口说明
 - HTTP/HTTPS: 5000
 - MQTT: 1883
+- 视觉识别服务: 8000
 
 ### 8.7 持久化运行
 - 使用 `nohup` 命令实现应用持久化运行
@@ -406,7 +472,12 @@ nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
 - 图片识别完成后，识别结果会显示在图片查看模态框中
 - 识别结果包括：蚊子类型、置信度、识别时间等
 
-### 9.8 系统设置
+### 9.8 从上传图片管理列表中分析图片
+- 在图片管理页面，每张图片旁边都有"识别"按钮
+- 点击"识别"按钮后，系统会自动跳转到视觉识别页面并开始分析
+- 分析完成后，识别结果会实时显示在页面上
+
+### 9.9 系统设置
 - 当前版本支持基本的系统配置
 - 管理员可以修改用户密码
 - 支持设备权限管理
@@ -452,13 +523,15 @@ nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
 - 检查后端API是否正常响应
 
 #### 10.1.7 视觉识别结果不显示
-- 检查视觉识别服务是否正在运行
-- 查看视觉识别服务日志
+- 检查视觉识别服务是否正在运行: `ps aux | grep visual_service.py`
+- 查看视觉识别服务日志: `cat visual_service.log`
 - 检查识别结果回调是否成功
+- 确保端口8000未被占用: `netstat -tlnp | grep 8000`
 
 ### 10.2 日志查看
 - **应用日志**: 查看 app.log 文件
 - **MQTT服务器日志**: 查看 mqtt_server.log 文件
+- **视觉识别服务日志**: 查看 visual_service.log 文件
 - **浏览器控制台**: 检查前端JavaScript错误
 - **服务器控制台**: 查看运行时错误信息
 
@@ -493,21 +566,35 @@ nohup python3 app.py > app.log 2>&1 &
 # 重启MQTT服务器
 pkill -f "python3 mqtt_server.py"
 nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
+
+# 重启视觉识别服务
+pkill -f "python3 visual_service.py"
+nohup python3 visual_service.py > visual_service.log 2>&1 &
 ```
 
 ## 11. 功能更新日志
 
-### 11.1 版本 b366837 (最新)
+### 11.1 版本 c9d9db4 (最新)
+- **视觉识别功能集成**: 完整集成蚊子分类和性别识别功能
+- **视觉识别服务**: 添加独立的视觉识别服务(visual_service.py)
+- **前端视觉识别界面**: 添加图片上传、分析和结果展示功能
+- **识别框绘制**: 实现实时识别框绘制和标签显示
+- **品种和性别统计**: 添加品种和性别分布统计功能
+- **从上传列表分析**: 支持从上传图片管理列表中选择图片进行分析
+- **API接口扩展**: 添加视觉识别相关API接口
+- **数据库设计**: 添加视觉识别结果表
+- **部署文档更新**: 添加视觉识别服务部署指南
 - **MQTT配置更新**: 更改MQTT Broker地址为外网IP 111.230.253.226
 - **前端图片展示优化**: 最新图片改为一列5张，图片管理改为8张/页
 - **图片查看模态框优化**: 支持3840×2160分辨率，增大模态框尺寸
 - **设备日志页面优化**: 添加搜索和刷新功能，优化UI布局
 - **实时数据推送**: 增强WebSocket功能，实时推送传感器数据
-- **视觉识别结果展示**: 预留识别结果展示接口
 - **数据清理功能**: 添加定期数据清理（每24小时）
 - **自动设备注册**: 基于设备ID的自动注册机制
 - **API接口扩展**: 添加图片列表、设备日志等接口
 - **持久化运行支持**: 使用nohup命令支持终端关闭后继续运行
+- **依赖项管理**: 优化依赖项配置，添加requirements.txt文件
+- **文档更新**: 完善技术文档和视觉集成指南
 
 ### 11.2 版本 002de49
 - 更新.gitignore，添加app.log排除
@@ -616,8 +703,9 @@ nohup python3 mqtt_server.py > mqtt_server.log 2>&1 &
 
 ---
 
-**文档生成时间**: 2025-12-22
-**文档版本**: 1.2
-**项目版本**: b366837
+**文档生成时间**: 2025-12-23
+**文档版本**: 1.3
+**项目版本**: c9d9db4
 **MQTT Broker地址**: 111.230.253.226
 **服务器访问地址**: http://111.230.253.226:5000
+**视觉识别服务地址**: http://111.230.253.226:8000

@@ -22,7 +22,7 @@ TEST_DEVICE_ID = f"test-device-{uuid.uuid4().hex[:8]}"
 TEST_DEVICE_NAME = f"测试设备-{TEST_DEVICE_ID}"
 
 # 测试图片路径（用户指定的测试照片）
-TEST_IMAGE_PATH = "/home/ubuntu/Intelligent-mosquito-catching-device/WIN_20251202_12_10_21_Pro.jpg"
+TEST_IMAGE_PATH = "/home/ubuntu/Intelligent-mosquito-catching-device/7f4723fb8c06b62fd145da927ba566bb.jpg"
 
 # 会话对象，用于保持登录状态
 session = requests.Session()

@@ -1,0 +1,9 @@
+flask
+flask_socketio
+paho-mqtt
+requests
+ultralytics
+torch
+numpy
+eventlet
+gunicorn

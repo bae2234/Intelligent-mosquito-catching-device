@@ -26,7 +26,7 @@ label_mapping = {
 # --- 1. 加载你训练好的模型 ---
 # 建议在服务启动时就加载模型，不要放在接口函数里，否则每次请求都会卡顿
 print("正在加载模型...")
-model = YOLO('best.pt')  # 这里填你模型文件的路径
+model = YOLO('/home/ubuntu/Intelligent-mosquito-catching-device/models/best.pt')  # 模型文件路径
 print("模型加载完成！")
 
 def run_inference_and_callback(image_path, image_id, callback_url):

@@ -30,17 +30,16 @@
 
 ### 2.2 服务器环境准备
 
-1. **创建独立的虚拟环境**：
+1. **使用项目主虚拟环境**：
    ```bash
    cd /home/ubuntu/Intelligent-mosquito-catching-device
-   python3 -m venv vision_venv
-   source vision_venv/bin/activate
+   python3 -m venv venv
+   source venv/bin/activate
    ```
 
-2. **安装视觉依赖**：
+2. **安装依赖**：
    ```bash
-   # 假设视觉工程师提供了requirements.txt
-   pip install -r vision_requirements.txt
+   pip install -r config/requirements.txt
    ```
 
 3. **创建视觉服务目录**：
@@ -393,17 +392,17 @@ ALTER TABLE images ADD COLUMN recognized_at TEXT;
 
 1. **部署视觉识别服务**：
    ```bash
-   # 方案A：集成到现有应用
-   cp -r vision_engineer_code/vision_service /home/ubuntu/Intelligent-mosquito-catching-device/
-   
-   # 方案B：独立服务
-   cd /home/ubuntu/Intelligent-mosquito-catching-device/vision_service
-   python app.py --host 0.0.0.0 --port 5001 &
+   # 启动独立的视觉识别服务
+   cd /home/ubuntu/Intelligent-mosquito-catching-device
+   nohup python visual_service.py > visual_service.log 2>&1 &
    ```
 
 2. **重启Flask应用**：
    ```bash
-   sudo systemctl restart mosquito-web-server
+   # 停止现有进程
+   pkill -f "python3 app.py"
+   # 启动新进程
+   nohup python3 app.py > app.log 2>&1 &
    ```
 
 ### 7.2 测试流程
